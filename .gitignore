@@ -1,0 +1,13 @@
+.idea
+myapi.db
+*.pyc
+__pycache__
+migrations
+alembic.ini
+
+# Desktop Services Store
+*.DS_Store
+
+# SQL files
+*.sql
+.env
