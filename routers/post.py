@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
 
-from ..core.schema import RequestPage
-from ..core.utils import get_crud
-from ..models.post import Post
-from ..schemas import post
+from core.schema import RequestPage
+from core.utils import get_crud
+from models.post import Post
+from schemas import post
+
+from typing import List
 
 router = APIRouter(
     prefix="/post",
@@ -48,7 +50,7 @@ async def page_post(req: RequestPage, crud=Depends(get_crud)):
         조건값이 int,float 일 경우 그 값과 동일한 record만 반환합니다.\
         조건값이 list 경우 list 항목을 포함하는 모든 record를 반환합니다.\
     ",
-    response_model=list[post.ReadPost],
+    response_model=List[post.ReadPost],
 )
 async def search_post(filters: post.PatchPost, crud=Depends(get_crud)):
     return crud.search_record(Post, filters)
@@ -58,7 +60,7 @@ async def search_post(filters: post.PatchPost, crud=Depends(get_crud)):
     "/list",
     name="Post 리스트 조회",
     description="Post 테이블의 모든 Record를 가져옵니다",
-    response_model=list[post.ReadPost],
+    response_model=List[post.ReadPost],
 )
 def get_list(crud=Depends(get_crud)):
     return crud.get_list(Post)

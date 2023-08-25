@@ -1,11 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import (
-    post
-)
+from routers import (post)
 
-from .core.db import Base, engine
+from core.db import Base, engine
 
 fastapi_app = FastAPI(title="DangMooG", debug=True)
 

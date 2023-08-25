@@ -1,5 +1,5 @@
-from ..core.crud import CRUD
-from ..core.db import SessionLocal
+from core.crud import CRUD
+from core.db import SessionLocal
 
 
 def get_crud():
