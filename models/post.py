@@ -23,13 +23,3 @@ class Post(Base):
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     )
     mysql_engine = "InnoDB"
-
-
-class User(Base):
-    __tablename__ = "user"
-
-    id = Column(Integer, primary_key=True)
-    username = Column(VARCHAR(30), unique=True, nullable=False)
-    password = Column(VARCHAR(255), nullable=False)
-    email = Column(VARCHAR(255), unique=True, nullable=False)
-    is_super = Column(TINYINT, nullable=False)
