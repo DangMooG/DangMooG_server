@@ -21,11 +21,12 @@ User table CRUD
 
 
 @router.post(
-    "/user_create", name="Post record 생성", description="User 테이블에 새로운 유저를 생성합니다", response_model=user.UserCreate
+    "/user_create", name="User record 생성", description="User 테이블에 새로운 유저를 생성합니다", response_model=user.UserCreate
 )
-async def create_post(req: user.UserCreate, crud=Depends(get_crud)):
+async def create_user(req: user.UserCreate, crud=Depends(get_crud)):
     db_user = req.copy()
     db_user.password = pwd_context.hash(req.password)
+    print(db_user.password)
     return crud.create_record(User, db_user)
 
 @router.post(

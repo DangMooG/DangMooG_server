@@ -1,19 +1,19 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 
 
 """
-Post 테이블 schema
+Photo 테이블 schema
 """
 
 
-class BasePost(BaseModel):
+class PhotoUpload(BaseModel):
     title: str
-    price: int
-    photo_id: Optional[int]
+    description: Optional[str]
+    url: Optional[int]
     description: str
     category_id: int
     status: int

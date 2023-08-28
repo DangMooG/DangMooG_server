@@ -8,8 +8,8 @@ class UserCreate(BaseModel):
     username: str
     password: str
     email: EmailStr
-    available: bool
-    release: datetime
+    #available: int
+    #release: datetime
 
     class Config:
         orm_mode = True

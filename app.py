@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import (post)
+from routers import (post, user)
 
 from core.db import Base, engine
 
@@ -18,7 +18,7 @@ Base.metadata.create_all(bind=engine)
 
 
 fastapi_app.include_router(post.router, prefix="/meta")
-
+fastapi_app.include_router(user.router, prefix="/meta")
 # 실행 디렉토리
 # /Users/saewonkye/Workspace/api_metadata/
 
