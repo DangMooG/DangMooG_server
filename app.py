@@ -23,8 +23,8 @@ fastapi_app.include_router(user.router, prefix="/meta")
 # /Users/saewonkye/Workspace/api_metadata/
 
 # 실행 명령어
-# uvicorn app.app:fastapi_app --host 0.0.0.0 --port 80 --reload
-
+# uvicorn app:fastapi_app --reload
+# --host 0.0.0.0 --port 80
 # 파이썬 코드로 실행시
 # if __name__ == "__main__":
 #     uvicorn.run(fastapi_app

@@ -18,6 +18,7 @@ class BasePost(BaseModel):
     category_id: int
     status: int
     user_id: int
+    liked: Optional[int]
     view_count: Optional[int]
     comment_id: Optional[int]
 
@@ -40,6 +41,7 @@ class PatchPost(BaseModel):
     category_id: Optional[int]
     status: Optional[int]
     user_id: Optional[int]
+    liked: Optional[int]
     view_count: Optional[int]
     comment_id: Optional[int]
 

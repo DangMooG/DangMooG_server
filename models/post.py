@@ -16,6 +16,7 @@ class Post(Base):
     category_id = Column(Integer, nullable=False)
     status = Column(TINYINT, nullable=False)
     user_id = Column(Integer, nullable=False)
+    liked = Column(Integer)
     view_count = Column(Integer)
     comment_id = Column(Integer)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))

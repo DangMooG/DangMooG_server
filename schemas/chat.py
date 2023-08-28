@@ -6,42 +6,34 @@ from pydantic import BaseModel
 
 
 """
-Post 테이블 schema
+Chat 테이블 schema
 """
 
 
-class BasePost(BaseModel):
-    title: str
-    price: int
-    photo_id: Optional[int]
-    description: str
-    category_id: int
-    status: int
+class RecordChat(BaseModel):
+    post_id: int
+    room_id: int
+    is_seller: int
     user_id: int
-    view_count: Optional[int]
-    comment_id: Optional[int]
+    chat_str: str
 
     class Config:
         orm_mode = True
 
 
-class ReadPost(BasePost):
-    post_id: int
+class ReadChat(RecordChat):
+    chat_id: int
     create_time: datetime
     update_time: datetime
 
 
-
-class PatchPost(BaseModel):
-    title: Optional[str]
-    price: Optional[int]
-    photo_id: Optional[int]
-    description: Optional[str]
-    category_id: Optional[int]
-    status: Optional[int]
+class PatchChat(BaseModel):
+    post_id: Optional[int]
+    room_id: Optional[int]
+    is_seller: Optional[int]
     user_id: Optional[int]
-    view_count: Optional[int]
-    comment_id: Optional[int]
+    chat_str: Optional[str]
+    status: Optional[int]
 
     class Config:
         orm_mode = True

@@ -12,36 +12,30 @@ Photo 테이블 schema
 
 class PhotoUpload(BaseModel):
     title: str
-    description: Optional[str]
-    url: Optional[int]
-    description: str
+    url: HttpUrl
+    post_id: str
     category_id: int
     status: int
     user_id: int
-    view_count: Optional[int]
-    comment_id: Optional[int]
 
     class Config:
         orm_mode = True
 
 
-class ReadPost(BasePost):
-    post_id: int
+class ReadPhoto(PhotoUpload):
+    photo_id: int
     create_time: datetime
     update_time: datetime
 
 
 
-class PatchPost(BaseModel):
+class PatchPhoto(BaseModel):
     title: Optional[str]
-    price: Optional[int]
-    photo_id: Optional[int]
-    description: Optional[str]
+    url: Optional[HttpUrl]
+    post_id: Optional[str]
     category_id: Optional[int]
     status: Optional[int]
     user_id: Optional[int]
-    view_count: Optional[int]
-    comment_id: Optional[int]
 
     class Config:
         orm_mode = True
