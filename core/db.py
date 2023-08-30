@@ -6,8 +6,8 @@ from dotenv.main import load_dotenv
 
 load_dotenv()
 
-# SQLALCHEMY_DATABASE_URL = environ["SQLALCHEMY_DATABASE_URL"]
-SQLALCHEMY_DATABASE_URL = "mysql://root:jackI107971!@localhost:3306/dangmoog"
+SQLALCHEMY_DATABASE_URL = environ["SQLALCHEMY_DATABASE_URL"]
+
 
 # format : "사용하는db://{username}:{password}@{host}:{port}/{db_name}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
