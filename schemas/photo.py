@@ -13,10 +13,10 @@ Photo 테이블 schema
 class PhotoUpload(BaseModel):
     title: str
     url: HttpUrl
-    post_id: str
+    post_id: int
     category_id: int
     status: int
-    user_id: int
+    account_id: int
 
     class Config:
         orm_mode = True
@@ -35,7 +35,7 @@ class PatchPhoto(BaseModel):
     post_id: Optional[str]
     category_id: Optional[int]
     status: Optional[int]
-    user_id: Optional[int]
+    account_id: Optional[int]
 
     class Config:
         orm_mode = True

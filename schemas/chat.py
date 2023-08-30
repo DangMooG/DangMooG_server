@@ -14,7 +14,7 @@ class RecordChat(BaseModel):
     post_id: int
     room_id: int
     is_seller: int
-    user_id: int
+    account_id: int
     chat_str: str
 
     class Config:
@@ -31,7 +31,7 @@ class PatchChat(BaseModel):
     post_id: Optional[int]
     room_id: Optional[int]
     is_seller: Optional[int]
-    user_id: Optional[int]
+    account_id: Optional[int]
     chat_str: Optional[str]
     status: Optional[int]
 

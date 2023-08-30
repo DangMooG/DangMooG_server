@@ -12,7 +12,7 @@ class Chat(Base):
     post_id = Column(Integer, nullable=False)
     room_id = Column(Integer, nullable=False)
     is_seller = Column(TINYINT, nullable=False)
-    user_id = Column(Integer, nullable=False)
+    account_id = Column(Integer, nullable=False)
     chat_str = Column(String)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(

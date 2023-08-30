@@ -13,14 +13,10 @@ Post 테이블 schema
 class BasePost(BaseModel):
     title: str
     price: int
-    photo_id: Optional[int]
     description: str
     category_id: int
     status: int
-    user_id: int
-    liked: Optional[int]
-    view_count: Optional[int]
-    comment_id: Optional[int]
+    account_id: int
 
     class Config:
         orm_mode = True
@@ -40,10 +36,9 @@ class PatchPost(BaseModel):
     description: Optional[str]
     category_id: Optional[int]
     status: Optional[int]
-    user_id: Optional[int]
+    account_id: Optional[int]
     liked: Optional[int]
     view_count: Optional[int]
-    comment_id: Optional[int]
 
     class Config:
         orm_mode = True

@@ -8,7 +8,7 @@ from core.db import Base
 class Category(Base):
     __tablename__ = "category"
     category_id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
-    name = Column(VARCHAR(255), nullable=False)
+    category_name = Column(VARCHAR(255), nullable=False)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")

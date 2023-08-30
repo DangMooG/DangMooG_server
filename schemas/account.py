@@ -4,29 +4,29 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 
-class UserCreate(BaseModel):
+class AccountCreate(BaseModel):
     username: str
     password: str
     email: EmailStr
     available: int
-    release: datetime
+    jail_until: datetime
 
     class Config:
         orm_mode = True
 
 
-class ReadUser(UserCreate):
-    user_id: int
+class ReadAccount(AccountCreate):
+    account_id: int
     create_time: datetime
     update_time: datetime
 
 
-class PatchUser(BaseModel):
+class PatchAccount(BaseModel):
     username: Optional[str]
     password: Optional[str]
     email: Optional[EmailStr]
     available: Optional[bool]
-    release: Optional[datetime]
+    jail_until: Optional[datetime]
 
     class Config:
         orm_mode = True

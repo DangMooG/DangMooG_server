@@ -19,7 +19,7 @@ Photo table CRUD
 
 
 @router.post(
-    "/", name="Photo record 생성", description="Photo 테이블에 Record 생성합니다", response_model=post.ReadPost
+    "/", name="Photo record 생성", description="Photo 테이블에 Record 생성합니다", response_model=photo.ReadPhoto
 )
 async def create_post(req: photo.PhotoUpload, crud=Depends(get_crud)):
     return crud.create_record(Photo, req)
@@ -60,7 +60,7 @@ async def search_post(filters: photo.PatchPhoto, crud=Depends(get_crud)):
     "/list",
     name="Photo 리스트 조회",
     description="Photo 테이블의 모든 Record를 가져옵니다",
-    response_model=List[photo.ReadPost],
+    response_model=List[photo.ReadPhoto],
 )
 def get_list(crud=Depends(get_crud)):
     return crud.get_list(Photo)
@@ -84,7 +84,7 @@ def read_post(id: int, crud=Depends(get_crud)):
     "/{id}",
     name="Photo 한 record 전체 내용 수정",
     description="수정하고자 하는 id의 record 전체 수정, record 수정 데이터가 존재하지 않을시엔 생성",
-    response_model=photo.ReadPost,
+    response_model=photo.ReadPhoto,
 )
 async def update_post(req: photo.PhotoUpload, id: int, crud=Depends(get_crud)):
     filter = {"post_id": id}

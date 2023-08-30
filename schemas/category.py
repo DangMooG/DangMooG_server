@@ -11,7 +11,7 @@ Category 테이블 schema
 
 
 class CreateCategory(BaseModel):
-    name: str
+    category_name: str
 
 
 class ReadCategory(CreateCategory):
@@ -21,7 +21,7 @@ class ReadCategory(CreateCategory):
 
 
 class PatchCategory(BaseModel):
-    name: Optional[str]
+    category_name: Optional[str]
 
     class Config:
         orm_mode = True

@@ -19,7 +19,7 @@ Post table CRUD
 
 
 @router.post(
-    "/", name="Post record 생성", description="Post 테이블에 Record 생성합니다", response_model=post.ReadPost
+    "/create_post", name="Post record 생성", description="Post 테이블에 Record 생성합니다", response_model=post.ReadPost
 )
 async def create_post(req: post.BasePost, crud=Depends(get_crud)):
     return crud.create_record(Post, req)

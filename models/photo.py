@@ -13,7 +13,7 @@ class Photo(Base):
     post_id = Column(Integer, nullable=False)
     category_id = Column(Integer, nullable=False)
     status = Column(TINYINT, nullable=False)
-    user_id = Column(Integer, nullable=False)
+    account_id = Column(Integer, nullable=False)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
