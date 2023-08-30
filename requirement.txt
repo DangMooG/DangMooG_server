@@ -7,7 +7,7 @@ dnspython==2.4.2
 email-validator==2.0.0.post2
 exceptiongroup==1.1.3
 fastapi==0.103.0
-greenlet @ file:///D:/bld/greenlet_1684083067297/work
+greenlet
 h11==0.14.0
 idna==3.4
 mysqlclient==2.2.0
@@ -16,7 +16,7 @@ pydantic==2.3.0
 pydantic_core==2.6.3
 python-dotenv==1.0.0
 sniffio==1.3.0
-SQLAlchemy @ file:///D:/bld/sqlalchemy_1692201954040/work
+SQLAlchemy
 starlette==0.27.0
-typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/typing_extensions_1688315532570/work
+typing_extensions
 uvicorn==0.23.2
