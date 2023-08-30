@@ -23,8 +23,6 @@ fastapi_app.include_router(category.router, prefix="/meta")
 fastapi_app.include_router(chat.router, prefix="/meta")
 fastapi_app.include_router(photo.router, prefix="/meta")
 
-# 실행 디렉토리
-# /Users/saewonkye/Workspace/api_metadata/
 
 # 실행 명령어
 # uvicorn app:fastapi_app --reload

@@ -1,4 +1,4 @@
-from sqlalchemy import VARCHAR, Column, Integer, text, String
+from sqlalchemy import VARCHAR, Column, Integer, text, CHAR
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TIMESTAMP
@@ -10,7 +10,7 @@ class Account(Base):
     __tablename__ = "account"
     account_id = Column(Integer, primary_key=True)
     username = Column(VARCHAR(30), unique=True, nullable=False)
-    password = Column(String, nullable=False)
+    password = Column(CHAR(60), nullable=False)
     email = Column(VARCHAR(255), unique=True, nullable=False)
     available = Column(TINYINT, nullable=False)
     jail_until = Column(TIMESTAMP)

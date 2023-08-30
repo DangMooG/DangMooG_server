@@ -1,4 +1,4 @@
-from sqlalchemy import VARCHAR, Column, Integer, text, String
+from sqlalchemy import Column, Integer, text, TEXT
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TIMESTAMP
@@ -13,7 +13,7 @@ class Chat(Base):
     room_id = Column(Integer, nullable=False)
     is_seller = Column(TINYINT, nullable=False)
     account_id = Column(Integer, nullable=False)
-    chat_str = Column(String)
+    chat_str = Column(TEXT)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
