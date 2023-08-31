@@ -8,8 +8,6 @@ class AccountCreate(BaseModel):
     username: str
     password: str
     email: EmailStr
-    available: int
-    jail_until: datetime
 
     class Config:
         orm_mode = True

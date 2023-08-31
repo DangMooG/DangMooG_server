@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, FileUrl
 
 
 
@@ -11,8 +11,7 @@ Photo 테이블 schema
 
 
 class PhotoUpload(BaseModel):
-    title: str
-    url: HttpUrl
+    url: str
     post_id: int
     category_id: int
     status: int
@@ -30,8 +29,7 @@ class ReadPhoto(PhotoUpload):
 
 
 class PatchPhoto(BaseModel):
-    title: Optional[str]
-    url: Optional[HttpUrl]
+    url: Optional[FileUrl]
     post_id: Optional[str]
     category_id: Optional[int]
     status: Optional[int]

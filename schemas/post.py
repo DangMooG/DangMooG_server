@@ -32,7 +32,6 @@ class ReadPost(BasePost):
 class PatchPost(BaseModel):
     title: Optional[str]
     price: Optional[int]
-    photo_id: Optional[int]
     description: Optional[str]
     category_id: Optional[int]
     status: Optional[int]

@@ -12,7 +12,7 @@ class Photo(Base):
     url = Column(VARCHAR(2000), nullable=False)
     post_id = Column(Integer, ForeignKey("post.post_id"), nullable=False)
     post = relationship("Post", backref="photos")
-    category_id = Column(Integer, ForeignKey("catrgory.category_id"), nullable=False)
+    category_id = Column(Integer, ForeignKey("category.category_id"), nullable=False)
     status = Column(TINYINT, nullable=False)
     account_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
