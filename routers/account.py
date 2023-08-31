@@ -1,4 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from jose import jwt
+from starlette import status
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
 from passlib.context import CryptContext
@@ -9,6 +12,9 @@ from models.account import Account
 from schemas import account
 
 from typing import List
+
+from datetime import timedelta, datetime
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(
@@ -125,3 +131,36 @@ async def delete_account(id: int, crud=Depends(get_crud)):
     if db_api != 1:
         raise HTTPException(status_code=404, detail="Record not found")
     return Response(status_code=HTTP_204_NO_CONTENT)
+
+
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+SECRET_KEY = "805b4d64afe69895a39822c07f92fc709ae8e250d1ef49c0b1dc3bbfa072090e"
+ALGORITHM = "HS256"
+
+
+@router.post("/login", response_model=account.Token)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
+                           crud=Depends(get_crud)):
+
+    # check user and password
+    filter = {"username": form_data.username}
+    user = crud.get_record(Account, filter)
+    if not user or not pwd_context.verify(form_data.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # make access token
+    data = {
+        "sub": user.username,
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "username": user.username
+    }
