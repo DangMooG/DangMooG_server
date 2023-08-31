@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
+from typing import IO
+from tempfile import NamedTemporaryFile
 
 from core.schema import RequestPage
 from core.utils import get_crud
@@ -8,6 +10,8 @@ from models.photo import Photo
 from schemas import photo
 
 from typing import List
+
+import boto3
 
 router = APIRouter(
     prefix="/photo",
@@ -17,12 +21,32 @@ router = APIRouter(
 Photo table CRUD
 """
 
+async def upload_file(file: IO):
+    with NamedTemporaryFile("wb", delete=True) as tempfile:
+        try:
+            # s3 클라이언트 생성
+            s3 = boto3.resource(
+                service_name="s3",
+                region_name="ap-northeast-2",
+                aws_access_key_id="{액세스 키 ID}",
+                aws_secret_access_key="{비밀 액세스 키}",
+            )
+        except Exception as e:
+            print(e)
+        else:
+            s3.Bucket("BUCKT_NAME").put_object(file.name, file, ContentType='image/jpg')
+            return "uploaded url link"
+
+
 
 @router.post(
     "/", name="Photo record 생성", description="Photo 테이블에 Record 생성합니다", response_model=photo.ReadPhoto
 )
-async def create_post(req: photo.PhotoUpload, crud=Depends(get_crud)):
-    return crud.create_record(Photo, req)
+async def create_post(req: photo.PhotoUpload, file: UploadFile, crud=Depends(get_crud)):
+    temp = req.copy()
+    url = await upload_file(file.file)
+    temp.url = url
+    return crud.create_record(Photo, temp)
 
 
 @router.post(
