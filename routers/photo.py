@@ -43,10 +43,8 @@ async def upload_file(file: File(...)):
     "/", name="Photo record 생성", description="Photo 테이블에 Record 생성합니다", response_model=photo.ReadPhoto
 )
 async def create_post(req: photo.PhotoUpload = Depends(), file: UploadFile = File(...), crud=Depends(get_crud)):
-    print("asdasd")
     temp = req.model_copy()
     url = await upload_file(file)
-    print(url)
     temp.url = url
     return crud.create_record(Photo, temp)
 
