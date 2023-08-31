@@ -28,13 +28,13 @@ async def upload_file(file: IO):
             s3 = boto3.resource(
                 service_name="s3",
                 region_name="ap-northeast-2",
-                aws_access_key_id="{액세스 키 ID}",
-                aws_secret_access_key="{비밀 액세스 키}",
+                aws_access_key_id="AKIATNMX4SNIQ7EQHYBP",
+                aws_secret_access_key="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",
             )
         except Exception as e:
             print(e)
         else:
-            s3.Bucket("BUCKT_NAME").put_object(file.name, file, ContentType='image/jpg')
+            s3.Bucket("BUCKET_NAME").put_object(file.name, file, ContentType='image/jpg')
             return "uploaded url link"
 
 
@@ -43,7 +43,7 @@ async def upload_file(file: IO):
     "/", name="Photo record 생성", description="Photo 테이블에 Record 생성합니다", response_model=photo.ReadPhoto
 )
 async def create_post(req: photo.PhotoUpload, file: UploadFile, crud=Depends(get_crud)):
-    temp = req.copy()
+    temp = req.model_copy()
     url = await upload_file(file.file)
     temp.url = url
     return crud.create_record(Photo, temp)
