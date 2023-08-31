@@ -1,4 +1,4 @@
-from sqlalchemy import VARCHAR, Column, Integer, text
+from sqlalchemy import VARCHAR, Column, Integer, text, ForeignKey
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TIMESTAMP
@@ -11,11 +11,11 @@ class Post(Base):
     post_id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
     title = Column(VARCHAR(255), nullable=False)
     price = Column(Integer, nullable=False)
-    photo_id = Column(Integer)
     description = Column(VARCHAR(2000), nullable=False)
-    category_id = Column(Integer, nullable=False)
+    category_id = Column(Integer, ForeignKey("category.category_id"), nullable=False)
     status = Column(TINYINT, nullable=False)
-    account_id = Column(Integer, nullable=False)
+    account_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
+    account = relationship("Account", backref="posts")  # 해당 이용자의 다른 게시글 참고 가능
     liked = Column(Integer)
     view_count = Column(Integer)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
