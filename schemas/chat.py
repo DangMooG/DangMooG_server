@@ -4,7 +4,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-
 """
 Chat 테이블 schema
 """
@@ -14,7 +13,7 @@ class RecordChat(BaseModel):
     post_id: int
     room_id: int
     is_seller: int
-    account_id: int
+    account_id: Optional[int]
     chat_str: str
 
     class Config:

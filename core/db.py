@@ -8,7 +8,6 @@ load_dotenv()
 
 SQLALCHEMY_DATABASE_URL = environ["SQLALCHEMY_DATABASE_URL"]
 
-
 # format : "사용하는db://{username}:{password}@{host}:{port}/{db_name}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 

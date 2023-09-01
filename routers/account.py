@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from jose import jwt
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import jwt, JWTError
 from starlette import status
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
@@ -12,9 +12,8 @@ from models.account import Account
 from schemas import account
 
 from typing import List
-
+from os import environ
 from datetime import timedelta, datetime
-
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(
@@ -27,13 +26,15 @@ Account table CRUD
 
 
 @router.post(
-    "/account_create", name="Account record 생성", description="Account 테이블에 새로운 유저를 생성합니다", response_model=account.AccountCreate
+    "/account_create", name="Account record 생성", description="Account 테이블에 새로운 유저를 생성합니다",
+    response_model=account.AccountCreate
 )
 async def create_account(req: account.AccountCreate, crud=Depends(get_crud)):
     db_account = req.model_copy()
     db_account.password = pwd_context.hash(req.password)
     print(db_account.password)
     return crud.create_record(Account, db_account)
+
 
 @router.post(
     "/page-list",
@@ -134,14 +135,14 @@ async def delete_account(id: int, crud=Depends(get_crud)):
 
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
-SECRET_KEY = "805b4d64afe69895a39822c07f92fc709ae8e250d1ef49c0b1dc3bbfa072090e"
+SECRET_KEY = environ["HASH_SECRET"]
 ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/login")
 
 
 @router.post("/login", response_model=account.Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
                            crud=Depends(get_crud)):
-
     # check user and password
     filter = {"username": form_data.username}
     user = crud.get_record(Account, filter)
@@ -154,6 +155,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
 
     # make access token
     data = {
+        "main": user.account_id,
         "sub": user.username,
         "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
@@ -164,3 +166,25 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
         "token_type": "bearer",
         "username": user.username
     }
+
+
+def get_current_user(token: str = Depends(oauth2_scheme),
+                     crud=Depends(get_crud)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    else:
+        filter = {"username": username}
+        user = crud.get_record(Account, filter)
+        if user is None:
+            raise credentials_exception
+        return user

@@ -6,6 +6,8 @@ from core.schema import RequestPage
 from core.utils import get_crud
 from models.chat import Chat
 from schemas import chat
+from routers.account import get_current_user
+from models.account import Account
 
 from typing import List
 
@@ -21,8 +23,10 @@ Chat table CRUD
 @router.post(
     "/", name="Chat record 생성", description="Chat 테이블에 Record 생성합니다", response_model=chat.RecordChat
 )
-async def create_post(req: chat.RecordChat, crud=Depends(get_crud)):
-    return crud.create_record(Chat, req)
+async def create_post(req: chat.RecordChat, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    final = req.model_copy()
+    final.account_id = current_user.account_id
+    return crud.create_record(Chat, final)
 
 
 @router.post(
@@ -73,7 +77,7 @@ def get_list(crud=Depends(get_crud)):
     response_model=chat.ReadChat,
 )
 def read_post(id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+    filter = {"chat_id": id}
     db_record = crud.get_record(Chat, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
@@ -87,7 +91,7 @@ def read_post(id: int, crud=Depends(get_crud)):
     response_model=chat.ReadChat,
 )
 async def update_post(req: chat.RecordChat, id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+    filter = {"chat_id": id}
     db_record = crud.get_record(Chat, filter)
     if db_record is None:
         return crud.create_record(Chat, req)
@@ -102,7 +106,7 @@ async def update_post(req: chat.RecordChat, id: int, crud=Depends(get_crud)):
     response_model=chat.ReadChat,
 )
 async def update_post_sub(req: chat.PatchChat, id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+    filter = {"chat_id": id}
     db_record = crud.get_record(Chat, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
@@ -115,8 +119,11 @@ async def update_post_sub(req: chat.PatchChat, id: int, crud=Depends(get_crud)):
     name="Chat record 삭제",
     description="입력된 id에 해당하는 record를 삭제합니다.",
 )
-async def delete_post(id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+async def delete_post(id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    filter = {"chat_id": id}
+    db_record = crud.get_record(Chat, filter)
+    if db_record.account_id == current_user.account_id:
+        raise HTTPException(status_code=401, detail="Unauthorized request")
     db_api = crud.delete_record(Chat, filter)
     if db_api != 1:
         raise HTTPException(status_code=404, detail="Record not found")

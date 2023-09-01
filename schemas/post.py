@@ -4,7 +4,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-
 """
 Post 테이블 schema
 """
@@ -16,7 +15,7 @@ class BasePost(BaseModel):
     description: str
     category_id: int
     status: int
-    account_id: int
+    account_id: Optional[int]
 
     class Config:
         orm_mode = True

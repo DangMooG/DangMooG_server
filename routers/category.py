@@ -73,7 +73,7 @@ def get_list(crud=Depends(get_crud)):
     response_model=category.ReadCategory,
 )
 def read_post(id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+    filter = {"category_id": id}
     db_record = crud.get_record(Category, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
@@ -87,7 +87,7 @@ def read_post(id: int, crud=Depends(get_crud)):
     response_model=category.ReadCategory,
 )
 async def update_post(req: category.CreateCategory, id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+    filter = {"category_id": id}
     db_record = crud.get_record(Category, filter)
     if db_record is None:
         return crud.create_record(Category, req)
@@ -102,7 +102,7 @@ async def update_post(req: category.CreateCategory, id: int, crud=Depends(get_cr
     response_model=category.ReadCategory,
 )
 async def update_post_sub(req: category.PatchCategory, id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+    filter = {"category_id": id}
     db_record = crud.get_record(Category, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
@@ -116,7 +116,7 @@ async def update_post_sub(req: category.PatchCategory, id: int, crud=Depends(get
     description="입력된 id에 해당하는 record를 삭제합니다.",
 )
 async def delete_post(id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+    filter = {"category_id": id}
     db_api = crud.delete_record(Category, filter)
     if db_api != 1:
         raise HTTPException(status_code=404, detail="Record not found")
