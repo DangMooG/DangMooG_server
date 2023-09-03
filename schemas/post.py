@@ -34,7 +34,7 @@ class PatchPost(BaseModel):
     description: Optional[str]
     category_id: Optional[int]
     status: Optional[int]
-    account_id: Optional[int]
+    account_id: int
     liked: Optional[int]
     view_count: Optional[int]
 

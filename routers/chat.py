@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
 
@@ -9,7 +9,7 @@ from schemas import chat
 from routers.account import get_current_user
 from models.account import Account
 
-from typing import List
+from typing import List, Dict, Set
 
 router = APIRouter(
     prefix="/chat",
@@ -24,9 +24,9 @@ Chat table CRUD
     "/", name="Chat record 생성", description="Chat 테이블에 Record 생성합니다", response_model=chat.RecordChat
 )
 async def create_post(req: chat.RecordChat, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    final = req.model_copy()
-    final.account_id = current_user.account_id
-    return crud.create_record(Chat, final)
+    if req.sender_id == current_user.account_id:
+        raise HTTPException(status_code=401, detail="Unauthorized request")
+    return crud.create_record(Chat, req)
 
 
 @router.post(
@@ -73,7 +73,7 @@ def get_list(crud=Depends(get_crud)):
 @router.get(
     "/{id}",
     name="Chat record 가져오기",
-    description="입력된 id를 키로 해당하는 Record 반환합니다",
+    description="입력된 chat_id를 키로 해당하는 Record 반환합니다",
     response_model=chat.ReadChat,
 )
 def read_post(id: int, crud=Depends(get_crud)):
@@ -84,19 +84,19 @@ def read_post(id: int, crud=Depends(get_crud)):
     return db_record
 
 
-@router.put(
-    "/{id}",
-    name="Chat 한 record 전체 내용 수정",
-    description="수정하고자 하는 id의 record 전체 수정, record 수정 데이터가 존재하지 않을시엔 생성",
+@router.get(
+    "/{post_id}",
+    name="Chat room number record 가져오기",
+    description="입력된 post id를 키로 chat room number를 반환합니다",
     response_model=chat.ReadChat,
 )
-async def update_post(req: chat.RecordChat, id: int, crud=Depends(get_crud)):
-    filter = {"chat_id": id}
+def read_post(post_id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    filter = {"post_id": post_id,
+              "account_id": current_user.account_id}
     db_record = crud.get_record(Chat, filter)
     if db_record is None:
-        return crud.create_record(Chat, req)
-
-    return crud.update_record(db_record, req)
+        return {"room_id": str(post_id) + str(current_user.account_id)}
+    return {"room_id": str(post_id) + str(current_user.account_id)}
 
 
 @router.patch(
@@ -105,7 +105,9 @@ async def update_post(req: chat.RecordChat, id: int, crud=Depends(get_crud)):
     description="수정하고자 하는 id의 record 일부 수정, record가 존재하지 않을시엔 404 오류 메시지반환합니다",
     response_model=chat.ReadChat,
 )
-async def update_post_sub(req: chat.PatchChat, id: int, crud=Depends(get_crud)):
+async def update_post_sub(req: chat.PatchChat, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    if req.sender_id == current_user.account_id:
+        raise HTTPException(status_code=401, detail="Unauthorized request")
     filter = {"chat_id": id}
     db_record = crud.get_record(Chat, filter)
     if db_record is None:
@@ -122,9 +124,46 @@ async def update_post_sub(req: chat.PatchChat, id: int, crud=Depends(get_crud)):
 async def delete_post(id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"chat_id": id}
     db_record = crud.get_record(Chat, filter)
-    if db_record.account_id == current_user.account_id:
+    if db_record.sender_id == current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
     db_api = crud.delete_record(Chat, filter)
     if db_api != 1:
         raise HTTPException(status_code=404, detail="Record not found")
     return Response(status_code=HTTP_204_NO_CONTENT)
+
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, Set[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, room: str):
+        await websocket.accept()
+        if room in self.active_connections:
+            self.active_connections[room].add(websocket)
+        else:
+            self.active_connections[room] = {websocket}
+
+    def disconnect(self, websocket: WebSocket, room: str):
+        self.active_connections[room].remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str, room: str):
+        for connection in self.active_connections[room]:
+            await connection.send_text(message)
+
+
+manager = ConnectionManager()
+
+
+@router.websocket("/ws/{room_name}")
+async def websocket_endpoint(websocket: WebSocket, room_name: str):
+    await manager.connect(websocket, room_name)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await manager.broadcast(data, room_name)
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, room_name)
+        await manager.broadcast(f"Client left the chat room: {room_name}", room_name)

@@ -15,26 +15,189 @@ from typing import List
 from os import environ
 from datetime import timedelta, datetime
 
+import smtplib
+from email.mime.text import MIMEText
+import random
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(
     prefix="/account",
     tags=["Account"],
 )
+
+
+def send_mail(to_who):
+    token = ''.join(random.choices('0123456789', k=6))
+    sender = "dotorit2023@gmail.com"
+    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.login(sender, environ["MAIL_API_KEY"])
+        msg = MIMEText(
+            '안녕하세요, \n\n'
+            '지스트 중고장터 \"도토릿\" 가입을 위한 인증번호는 아래와 같습니다.\n'
+            f'{token}\n'
+            '5분 내에 인증번호 입력창에 인증을 완료해주셔야 합니다. 감사합니다')
+        msg['Subject'] = '도토릿 지스트 중고장터 서비스 이용을 위한 인증 메일입니다.'
+        msg['From'] = sender
+        msg['To'] = to_who
+        smtp.sendmail(sender, to_who, msg.as_string())
+        smtp.quit()
+    return token
+
+
 """
 Account table CRUD
 """
 
+@router.post("/mail_send", name="Gist mail 인증 메일 발솔", description="기본적으로 회원가입을 진행하기 위해서 사용합니다.\n"
+                                                               "이미 회원이라면 로그인 토큰을 발급받기 위한 과정으로 사용됩니다."
+                                                               "필요한 것은 메일 하나뿐 입니다.")
+async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
+    if "@gist.ac.kr" not in req.email and "@gm.gist.ac.kr" not in req.email:
+        raise HTTPException(status_code=401, detail="Not valid request, please use gist mail")
+    filter = {"email": req.email}
+    is_exist = crud.get_record(Account, filter)
+    verification_number = send_mail(req.email)
+    if is_exist:
+        update = is_exist.model_copy()
+        update.password = pwd_context.hash(verification_number)
+        crud.update_record(is_exist, update)
+    else:
+        db_account = req.model_copy()
+        db_account.password = pwd_context.hash(verification_number)
+        crud.create_record(Account, db_account)
+    return Response(status_code=status.HTTP_100_CONTINUE)
+
+
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+REFRESH_TOKEN_EXPIRE_DAYS = 30 * 6
+SECRET_KEY = environ["ACCESS_TOKEN_HASH"]
+REFRESH_SECRET_KEY = environ["REFRESH_TOKEN_HASH"]
+ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
+
 
 @router.post(
-    "/account_create", name="Account record 생성", description="Account 테이블에 새로운 유저를 생성합니다",
+    "/verification", name="Mail 인증 번호 확인 API", description="보낸 인증 메일의 번호에 대한 확인과 함께 테이블에 유저 생성이 완료됩니다.\n"
+                                                           "추가로 username생성이 필요합니다.",
+    response_model=account.Token
+)
+async def active_account(form_data: OAuth2PasswordRequestForm = Depends(),
+                           crud=Depends(get_crud)):
+    filter = {"email": form_data.username}  # email input required
+    user = crud.get_record(Account, filter)
+    if not user or not pwd_context.verify(form_data.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if datetime.now() > user.create_time + timedelta(minutes=10):
+        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Authentication number has expired")
+
+    # make access token
+    data = {
+        "sub": user.account_id,
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    data2 = {
+        "sub": str(user.account_id)+"refresh",
+        "exp": datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    }
+    access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+
+    # refresh token save
+    refresh_token = jwt.encode(data2, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
+    refresh_req = account.RefreshToKen(refresh_token=refresh_token)
+    # refresh_req.refresh_token = refresh_token
+    crud.patch_record(Account, refresh_req)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "account_id": user.account_id
+    }
+
+
+@router.post(
+    "/token_extend", name="토큰 기간연장 혹은 재발급", description="현재 사용자가 토큰이 만료됐다면, refresh token의 기간이 만료되지 않았다면 access token을 재발급합니다.\n"
+                                                           "추가로 username생성이 필요합니다.",
+    response_model=account.Token
+)
+async def token_extend(token: account.Token,
+                           crud=Depends(get_crud)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        account_id: str = payload.get("sub")
+        if datetime.fromtimestamp(payload.get("exp")) < datetime.utcnow():
+            present_user = crud.get_record(Account, account_id)
+            refresh_payload = jwt.decode(present_user.refresh_token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+            if datetime.fromtimestamp(refresh_payload.get("exp")) < datetime.utcnow():
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token expired",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+    except JWTError:
+        raise credentials_exception
+    else:
+        data = {
+            "sub": account_id,
+            "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        }
+        access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "account_id": account_id
+        }
+
+
+def get_current_user(token: str = Depends(oauth2_scheme),
+                     crud=Depends(get_crud)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        account_id: str = payload.get("sub")
+        if datetime.fromtimestamp(payload.get("exp")) < datetime.utcnow():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        if account_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    else:
+        filter = {"account_id": account_id}
+        user = crud.get_record(Account, filter)
+        if user is None:
+            raise credentials_exception
+        return user
+
+@router.post(
+    "/set_user_property", name="Account record 생성", description="Account의 username, available, jail_until을 설정합니다",
     response_model=account.AccountCreate
 )
-async def create_account(req: account.AccountCreate, crud=Depends(get_crud)):
-    db_account = req.model_copy()
-    db_account.password = pwd_context.hash(req.password)
-    print(db_account.password)
-    return crud.create_record(Account, db_account)
+async def update_post_sub(req: account.PatchAccount, id: int, crud=Depends(get_crud)):
+    filter = {"account_id": id}
+    db_record = crud.get_record(Account, filter)
+    if db_record is None:
+        raise HTTPException(status_code=404, detail="Record not found")
 
+    return crud.patch_record(db_record, req)
 
 @router.post(
     "/page-list",
@@ -132,59 +295,3 @@ async def delete_account(id: int, crud=Depends(get_crud)):
     if db_api != 1:
         raise HTTPException(status_code=404, detail="Record not found")
     return Response(status_code=HTTP_204_NO_CONTENT)
-
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
-SECRET_KEY = environ["HASH_SECRET"]
-ALGORITHM = "HS256"
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/login")
-
-
-@router.post("/login", response_model=account.Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
-                           crud=Depends(get_crud)):
-    # check user and password
-    filter = {"username": form_data.username}
-    user = crud.get_record(Account, filter)
-    if not user or not pwd_context.verify(form_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # make access token
-    data = {
-        "main": user.account_id,
-        "sub": user.username,
-        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    }
-    access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "username": user.username
-    }
-
-
-def get_current_user(token: str = Depends(oauth2_scheme),
-                     crud=Depends(get_crud)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    else:
-        filter = {"username": username}
-        user = crud.get_record(Account, filter)
-        if user is None:
-            raise credentials_exception
-        return user

@@ -14,7 +14,7 @@ class PhotoUpload(BaseModel):
     post_id: int
     category_id: int
     status: int
-    account_id: Optional[int]
+    account_id: int
 
     class Config:
         orm_mode = True

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.responses import Response
-from starlette.status import HTTP_204_NO_CONTENT
+from starlette.status import HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
 
 from core.schema import RequestPage
 from core.utils import get_crud
@@ -25,9 +25,9 @@ Post table CRUD
     "/create_post", name="Post record 생성", description="Post 테이블에 Record 생성합니다", response_model=post.ReadPost
 )
 async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    final = req.model_copy()
-    final.account_id = current_user.account_id
-    return crud.create_record(Post, final)
+    if req.account_id != current_user.account_id:
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
+    return crud.create_record(Post, req)
 
 
 @router.post(
@@ -92,17 +92,17 @@ def read_post(id: int, crud=Depends(get_crud)):
     response_model=post.ReadPost,
 )
 async def update_post(req: post.BasePost, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    final = req.model_copy()
-    final.account_id = current_user.account_id
+    if req.account_id != current_user.account_id:
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
     filter = {"post_id": id}
     db_record = crud.get_record(Post, filter)
     if db_record is None:
-        return crud.create_record(Post, final)
+        return crud.create_record(Post, req)
 
     if db_record.account_id == current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
 
-    return crud.update_record(db_record, final)
+    return crud.update_record(db_record, req)
 
 
 @router.patch(
@@ -112,6 +112,8 @@ async def update_post(req: post.BasePost, id: int, crud=Depends(get_crud), curre
     response_model=post.ReadPost,
 )
 async def update_post_sub(req: post.PatchPost, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    if req.account_id != current_user.account_id:
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
     filter = {"post_id": id}
     db_record = crud.get_record(Post, filter)
     if db_record is None:

@@ -5,9 +5,8 @@ from pydantic import BaseModel, EmailStr
 
 
 class AccountCreate(BaseModel):
-    username: str
-    password: str
     email: EmailStr
+    password: Optional[str]
 
     class Config:
         orm_mode = True
@@ -21,8 +20,6 @@ class ReadAccount(AccountCreate):
 
 class PatchAccount(BaseModel):
     username: Optional[str]
-    password: Optional[str]
-    email: Optional[EmailStr]
     available: Optional[bool]
     jail_until: Optional[datetime]
 
@@ -33,4 +30,9 @@ class PatchAccount(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-    username: str
+    account_id: int
+
+
+class RefreshToKen(BaseModel):
+    refresh_token: Optional[str]
+

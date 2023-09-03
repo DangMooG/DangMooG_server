@@ -1,4 +1,4 @@
-from sqlalchemy import VARCHAR, Column, Integer, text, CHAR
+from sqlalchemy import VARCHAR, Column, Integer, TEXT, text, CHAR
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TIMESTAMP
@@ -14,6 +14,7 @@ class Account(Base):
     email = Column(VARCHAR(255), unique=True, nullable=False)
     available = Column(TINYINT, nullable=False)
     jail_until = Column(TIMESTAMP)
+    refresh_token = Column(TEXT)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
