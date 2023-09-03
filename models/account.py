@@ -9,10 +9,11 @@ from core.db import Base
 class Account(Base):
     __tablename__ = "account"
     account_id = Column(Integer, primary_key=True)
-    username = Column(VARCHAR(30), unique=True, nullable=False)
-    password = Column(CHAR(60), nullable=False)
+    username = Column(VARCHAR(30), unique=True)
+    access_token = Column(CHAR(60), nullable=False)
+    refresh_token = Column(CHAR(60), nullable=False)
     email = Column(VARCHAR(255), unique=True, nullable=False)
-    available = Column(TINYINT, nullable=False)
+    available = Column(TINYINT, nullable=False, default=0)
     jail_until = Column(TIMESTAMP)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
