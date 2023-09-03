@@ -28,8 +28,8 @@ async def upload_file(file: File(...)):
         s3 = boto3.client(
             service_name="s3",
             region_name="ap-northeast-2",
-            aws_access_key_id=environ["ACCESS_KEY"],
-            aws_secret_access_key=environ["SECRET_ACCESS_KEY"],
+            aws_access_key_id=environ["S3_ACCESS"],
+            aws_secret_access_key=environ["S3_SECRET"],
         )
     except Exception as e:
         print(e)
