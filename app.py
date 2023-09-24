@@ -7,10 +7,19 @@ from core.db import Base, engine
 
 fastapi_app = FastAPI(title="DangMooG", debug=True)
 
+origins = [
+    "http://127.0.0.1/",
+    "http://127.0.0.1:8000/",
+    "http://localhost/",
+    "http://localhost:8000/",
+    "https://port-0-dangmoog-api-server-p8xrq2mlfc80j33.sel3.cloudtype.app/",
+    "https://port-0-dangmoog-api-server-p8xrq2mlfc80j33.sel3.cloudtype.app:443/"
+]
+
 fastapi_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

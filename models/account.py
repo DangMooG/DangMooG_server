@@ -12,6 +12,7 @@ class Account(Base):
     username = Column(VARCHAR(30), unique=True, nullable=False)
     password = Column(CHAR(60), nullable=False)
     email = Column(VARCHAR(255), unique=True, nullable=False)
+    profile_url = Column(VARCHAR(2000))
     available = Column(TINYINT, nullable=False)
     jail_until = Column(TIMESTAMP)
     refresh_token = Column(TEXT)

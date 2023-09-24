@@ -1,19 +1,31 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class AccountCreate(BaseModel):
-    email: EmailStr
+    email: str
     password: Optional[str]
 
     class Config:
         orm_mode = True
 
 
-class ReadAccount(AccountCreate):
+class AccountReceate(BaseModel):
+    password: str
+
+    class Config:
+        orm_mode = True
+
+
+class ReadAccount(BaseModel):
     account_id: int
+    username: Optional[str]
+    email: str
+    profile_url: Optional[str]
+    available: Optional[int]
+    jail_until: datetime
     create_time: datetime
     update_time: datetime
 
@@ -25,6 +37,16 @@ class PatchAccount(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class NicnameSet(BaseModel):
+    username: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+class PhotoAccount(BaseModel):
+    profile_url: str
 
 
 class Token(BaseModel):

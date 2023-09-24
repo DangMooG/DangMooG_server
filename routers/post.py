@@ -1,14 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
 
 from core.schema import RequestPage
 from core.utils import get_crud
+from models.photo import Photo
 from models.post import Post
+from models.liked import Liked
 from schemas import post
 from routers.account import get_current_user
+from routers.photo import upload_file
 from models.account import Account
 
+import boto3
 
 from typing import List
 
@@ -25,9 +30,29 @@ Post table CRUD
     "/create_post", name="Post record 생성", description="Post 테이블에 Record 생성합니다", response_model=post.ReadPost
 )
 async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    print(req.account_id, current_user.account_id)
     if req.account_id != current_user.account_id:
+        print(req.account_id, current_user.account_id)
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
     return crud.create_record(Post, req)
+
+@router.post(
+    "/create_with_photo", name="Post 사진과 함께 생성", description="Post 테이블에 사진과 함께 Record를 생성합니다", response_model=post.ReadPost
+)
+async def create_with_photo(req: post.PhotoPost, files: List[UploadFile] = File(...), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    if req.account_id != current_user.account_id:
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
+    temp = req.model_copy()
+    for idx, file in enumerate(files):
+        url = await upload_file(file)
+        temp.url = url
+        if idx == 0:
+            temp_photo = crud.create_record(Photo, temp)
+            rep_photo_id = temp_photo.photo_id
+        else:
+            crud.create_record(Photo, temp)
+    temp.representative_photo_id = rep_photo_id
+    return crud.create_record(Post, temp)
 
 
 @router.post(
@@ -138,3 +163,27 @@ async def delete_post(id: int, crud=Depends(get_crud), current_user: Account = D
     if db_api != 1:
         raise HTTPException(status_code=404, detail="Record not found")
     return Response(status_code=HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/like_up",
+    name="Post like +1",
+    description="입력된 id에 해당하는 post의 좋아요를 사용자의 계정으로 1개 증가시킵니다.",
+)
+async def like_up(id:int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    filter = {"post_id": id}
+    db_record = crud.get_record(Post, filter)
+    if db_record is None:
+        raise HTTPException(status_code=404, detail="Record not found")
+    filter = {
+        "post_id": id,
+        "account_id": current_user.account_id,
+              }
+    is_duplicated = crud.search_record(Liked, filter)
+    if is_duplicated:
+        raise HTTPException(status_code=409, detail="You already like it")
+    patch = db_record.mode_copy()
+    patch.liked = db_record.liked+1
+    return crud.patch_record(db_record, patch)
+
+

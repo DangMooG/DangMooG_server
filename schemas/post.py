@@ -21,11 +21,14 @@ class BasePost(BaseModel):
         orm_mode = True
 
 
+class PhotoPost(BasePost):
+    representative_photo_id: int
+
+
 class ReadPost(BasePost):
     post_id: int
     create_time: datetime
     update_time: datetime
-
 
 
 class PatchPost(BaseModel):
@@ -36,7 +39,19 @@ class PatchPost(BaseModel):
     status: Optional[int]
     account_id: int
     liked: Optional[int]
-    view_count: Optional[int]
 
     class Config:
         orm_mode = True
+
+
+class LikedPatch(BaseModel):
+    post_id: int
+    account_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ReadLiked(LikedPatch):
+    liked_id: int
+    create_time: datetime

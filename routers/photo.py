@@ -6,8 +6,6 @@ from core.schema import RequestPage
 from core.utils import get_crud
 from models.photo import Photo
 from schemas import photo
-from routers.account import get_current_user
-from models.account import Account
 
 from typing import List
 from os import environ
@@ -29,7 +27,7 @@ async def upload_file(file: File(...)):
             service_name="s3",
             region_name="ap-northeast-2",
             aws_access_key_id=environ["S3_ACCESS"],
-            aws_secret_access_key=environ["S3_SECRET"],
+            aws_secret_access_key="EM4zmTbs9QVw+1jYAHp2eU5Vd9pn9FWIechUtt/h",
         )
     except Exception as e:
         print(e)
@@ -43,9 +41,12 @@ async def upload_file(file: File(...)):
     "/", name="Photo record 생성", description="Photo 테이블에 Record 생성합니다\n"
                                              "여러장 가능합니다."
 )
-async def create_post(req: photo.PhotoUpload = Depends(), files: List[UploadFile] = File(...), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def create_post(req: photo.PhotoUpload = Depends(), files: List[UploadFile] = File(...), crud=Depends(get_crud)):
+    """
+    , current_user: Account = Depends(get_current_user)
     if req.account_id == current_user.account_id:
-        raise HTTPException(status_code=401, detail="Unauthorized request")
+    raise HTTPException(status_code=401, detail="Unauthorized request")
+    """
     temp = req.model_copy()
     for file in files:
         url = await upload_file(file)
