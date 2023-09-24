@@ -21,6 +21,7 @@ from datetime import timedelta, datetime
 import smtplib
 from email.mime.text import MIMEText
 import random
+import traceback
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(
@@ -38,8 +39,8 @@ def send_mail(to_who):
         smtp.login(sender, environ["MAIL_API_KEY"])
         msg = MIMEText(
             '안녕하세요, \n\n'
-            '지스트 중고장터 \"도토릿\" 가입을 위한 인증번호는 아래와 같습니다.\n'
-            f'{token}\n'
+            '지스트 중고장터 \"도토릿\" 가입을 위한 인증번호는 아래와 같습니다.\n\n'
+            f'[{token}]\n\n'
             '5분 내에 인증번호 입력창에 인증을 완료해주셔야 합니다. 감사합니다')
         msg['Subject'] = '도토릿 지스트 중고장터 서비스 이용을 위한 인증 메일입니다.'
         msg['From'] = sender
@@ -83,7 +84,6 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
 
 ACCESS_TOKEN_EXPIRE_DAYS = 30 * 6
 SECRET_KEY = environ["ACCESS_TOKEN_HASH"]
-REFRESH_SECRET_KEY = environ["REFRESH_TOKEN_HASH"]
 ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
 
@@ -110,7 +110,7 @@ async def active_account(form_data: OAuth2PasswordRequestForm = Depends(),
 
     # make access token
     data = {
-        "sub": user.account_id,
+        "sub": str(user.account_id),
         "exp": datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     }
     access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
@@ -131,7 +131,6 @@ def get_current_user(token: str = Depends(oauth2_scheme),
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print("payload is complete")
         account_id: str = payload.get("sub")
         if datetime.fromtimestamp(payload.get("exp")) < datetime.utcnow():
             raise HTTPException(

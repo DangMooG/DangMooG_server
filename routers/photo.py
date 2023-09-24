@@ -27,7 +27,7 @@ async def upload_file(file: File(...)):
             service_name="s3",
             region_name="ap-northeast-2",
             aws_access_key_id=environ["S3_ACCESS"],
-            aws_secret_access_key="EM4zmTbs9QVw+1jYAHp2eU5Vd9pn9FWIechUtt/h",
+            aws_secret_access_key=environ["S3_SECRET"],
         )
     except Exception as e:
         print(e)
