@@ -13,7 +13,8 @@ origins = [
     "http://localhost/",
     "http://localhost:8000/",
     "https://port-0-dangmoog-api-server-p8xrq2mlfc80j33.sel3.cloudtype.app/",
-    "https://port-0-dangmoog-api-server-p8xrq2mlfc80j33.sel3.cloudtype.app:443/"
+    "https://port-0-dangmoog-api-server-p8xrq2mlfc80j33.sel3.cloudtype.app:443/",
+    "https://port-0-dangmoog-api-server-p8xrq2mlfc80j33.sel3.cloudtype.app:8000/"
 ]
 
 fastapi_app.add_middleware(
