@@ -5,7 +5,8 @@ from starlette.status import HTTP_204_NO_CONTENT
 from core.schema import RequestPage
 from core.utils import get_crud
 from models.photo import Photo
-from schemas import photo
+from models.post import Post
+from schemas import photo, post
 
 from typing import List
 from os import environ
@@ -47,12 +48,18 @@ async def create_post(req: photo.PhotoUpload = Depends(), files: List[UploadFile
     if req.account_id == current_user.account_id:
     raise HTTPException(status_code=401, detail="Unauthorized request")
     """
-    temp = req.model_copy()
-    for file in files:
+    temp = req.copy()
+    for idx, file in enumerate(files):
         url = await upload_file(file)
         temp.url = url
-        crud.create_record(Photo, temp)
-    return {"status": "upload_complete"}
+        if idx == 0:
+            temp = crud.create_record(Photo, temp)
+            rep_photo_id = temp.photo_id
+        else:
+            crud.create_record(Photo, temp)
+    temp_post = crud.get_record(Post, {"post_id": req.post_id})
+    request = post.PhotoPost(representative_photo_id=rep_photo_id)
+    return crud.patch_record(temp_post, request)
 
 
 @router.post(

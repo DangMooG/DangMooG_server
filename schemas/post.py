@@ -21,12 +21,13 @@ class BasePost(BaseModel):
         orm_mode = True
 
 
-class PhotoPost(BasePost):
+class PhotoPost(BaseModel):
     representative_photo_id: int
 
 
 class ReadPost(BasePost):
     post_id: int
+    representative_photo_id: Optional[int]
     create_time: datetime
     update_time: datetime
 
