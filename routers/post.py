@@ -30,26 +30,21 @@ Post table CRUD
     "/create_post", name="Post record 생성", description="Post 테이블에 Record 생성합니다", response_model=post.ReadPost
 )
 async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    print(req.account_id, current_user.account_id)
-    if req.account_id != current_user.account_id:
-        print(req.account_id, current_user.account_id)
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
-    return crud.create_record(Post, req)
+    upload = post.UploadPost(**req.dict(), account_id=current_user.account_id, username=current_user.username)
+    return crud.create_record(Post, upload)
 
 @router.post(
     "/create_with_photo", name="Post 사진과 함께 생성", description="Post 테이블에 사진과 함께 Record를 생성합니다",
 )
 async def create_with_photo(req: post.BasePost = Depends(), files: List[UploadFile] = File(...), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    if req.account_id != current_user.account_id:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
-    temp_post = crud.create_record(Post, req)
+    upload = post.PhotoPost(**req.dict(), representative_photo_id=0, account_id=current_user.account_id, username=current_user.username)
+    temp_post = crud.create_record(Post, upload)
     temp_photo = photo.PhotoUpload(
         post_id=temp_post.post_id,
         category_id=temp_post.category_id,
         account_id=current_user.account_id,
         status=0
     )
-    print(temp_photo)
     for idx, file in enumerate(files):
         url = await upload_file(file)
         temp_photo.url = url
@@ -58,7 +53,7 @@ async def create_with_photo(req: post.BasePost = Depends(), files: List[UploadFi
             rep_photo_id = temp.photo_id
         else:
             crud.create_record(Photo, temp_photo)
-    request = post.PhotoPost(representative_photo_id=rep_photo_id)
+    request = {"representative_photo_id": rep_photo_id}
     return crud.patch_record(temp_post, request)
 
 
@@ -209,7 +204,7 @@ async def like_back(id: int, crud=Depends(get_crud), current_user: Account = Dep
         raise HTTPException(status_code=404, detail="Record not found")
     return Response(status_code=HTTP_204_NO_CONTENT)
 
-@router.get(
+@router.post(
     "/get_like_list",
     name="like list extraction",
     description="현재 이용자의 좋아요한 게시물의 리스트를 가져옵니다"

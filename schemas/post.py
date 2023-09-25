@@ -15,19 +15,27 @@ class BasePost(BaseModel):
     description: str
     category_id: int
     status: int
-    account_id: Optional[int]
 
     class Config:
         orm_mode = True
 
 
-class PhotoPost(BaseModel):
+class PhotoPost(BasePost):
+    account_id: int
+    username: str
     representative_photo_id: int
+
+
+class UploadPost(BasePost):
+    account_id: int
+    username: str
 
 
 class ReadPost(BasePost):
     post_id: int
     representative_photo_id: Optional[int]
+    username: str
+    liked: int
     create_time: datetime
     update_time: datetime
 

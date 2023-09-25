@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.types import TIMESTAMP
 
 from core.db import Base
+from models.account import Account
 
 
 class Post(Base):
@@ -16,7 +17,9 @@ class Post(Base):
     category_id = Column(Integer, ForeignKey("category.category_id"), nullable=False)
     status = Column(TINYINT, nullable=False)
     account_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
-    account = relationship("Account", backref="posts")  # 해당 이용자의 다른 게시글 참고 가능
+    username = Column(VARCHAR(100), ForeignKey("account.username"), nullable=False)
+    account_for_id = relationship("Account", foreign_keys=[account_id], backref="posts")  # 해당 이용자의 다른 게시글 참고 가능
+    account_for_name = relationship("Account", foreign_keys=[username], backref="posts_from_name")  # 해당 이용자의 다른 게시글 참고 가능
     liked = Column(Integer, default=0)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
