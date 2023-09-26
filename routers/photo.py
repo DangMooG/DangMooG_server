@@ -6,6 +6,8 @@ from core.schema import RequestPage
 from core.utils import get_crud
 from models.photo import Photo
 from models.post import Post
+from models.account import Account
+from routers.account import get_current_user
 from schemas import photo, post
 
 from typing import List
@@ -42,16 +44,10 @@ async def upload_file(file: File(...)):
     "/", name="Photo record 생성", description="Photo 테이블에 Record 생성합니다\n"
                                              "여러장 가능합니다."
 )
-async def create_post(req: photo.PhotoUpload = Depends(), files: List[UploadFile] = File(...), crud=Depends(get_crud)):
-    """
-    , current_user: Account = Depends(get_current_user)
-    if req.account_id == current_user.account_id:
-    raise HTTPException(status_code=401, detail="Unauthorized request")
-    """
-    temp = req.copy()
+async def create_post(req: photo.PhotoUpload = Depends(), files: List[UploadFile] = File(...), current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     for idx, file in enumerate(files):
         url = await upload_file(file)
-        temp.url = url
+        temp = photo.PhotoComplete(**req.dict(), url=url, account_id=current_user.account_id)
         if idx == 0:
             temp = crud.create_record(Photo, temp)
             rep_photo_id = temp.photo_id
@@ -89,7 +85,7 @@ async def page_post(req: RequestPage, crud=Depends(get_crud)):
     ",
     response_model=List[photo.ReadPhoto],
 )
-async def search_post(filters: photo.PatchPhoto, crud=Depends(get_crud)):
+async def search_post(filters: photo.SearchPhoto, crud=Depends(get_crud)):
     return crud.search_record(Photo, filters)
 
 
@@ -115,36 +111,6 @@ def read_post(id: int, crud=Depends(get_crud)):
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
     return db_record
-
-
-@router.put(
-    "/{id}",
-    name="Photo 한 record 전체 내용 수정",
-    description="수정하고자 하는 id의 record 전체 수정, record 수정 데이터가 존재하지 않을시엔 생성",
-    response_model=photo.ReadPhoto,
-)
-async def update_post(req: photo.PhotoUpload, id: int, crud=Depends(get_crud)):
-    filter = {"photo_id": id}
-    db_record = crud.get_record(Photo, filter)
-    if db_record is None:
-        return crud.create_record(Photo, req)
-
-    return crud.update_record(db_record, req)
-
-
-@router.patch(
-    "/{id}",
-    name="Photo 한 record 일부 내용 수정",
-    description="수정하고자 하는 id의 record 일부 수정, record가 존재하지 않을시엔 404 오류 메시지반환합니다",
-    response_model=photo.ReadPhoto,
-)
-async def update_post_sub(req: photo.PatchPhoto, id: int, crud=Depends(get_crud)):
-    filter = {"photo_id": id}
-    db_record = crud.get_record(Photo, filter)
-    if db_record is None:
-        raise HTTPException(status_code=404, detail="Record not found")
-
-    return crud.patch_record(db_record, req)
 
 
 @router.delete(

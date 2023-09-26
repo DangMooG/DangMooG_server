@@ -31,7 +31,7 @@ class UploadPost(BasePost):
     username: str
 
 
-class ReadPost(BasePost):
+class ReadPost(PhotoPost):
     post_id: int
     representative_photo_id: Optional[int]
     username: str
@@ -47,6 +47,7 @@ class PatchPost(BaseModel):
     category_id: Optional[int]
     status: Optional[int]
     account_id: int
+    representative_photo_id: Optional[int]
     liked: Optional[int]
 
     class Config:

@@ -13,6 +13,9 @@ class Chat(Base):
     room_id = Column(Integer, nullable=False)
     sender_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
     receiver_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
+    sender_account = relationship("Account", foreign_keys=[sender_id])
+    receiver_account = relationship("Account", foreign_keys=[receiver_id])
+    is_photo = Column(TINYINT, default=0)
     chat_str = Column(TEXT)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(

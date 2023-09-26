@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
 
 from core.schema import RequestPage
 from core.utils import get_crud
 from models.chat import Chat
-from schemas import chat
+from schemas import chat, chat_photo
 from routers.account import get_current_user
+from routers.photo import upload_file
 from models.account import Account
+from models.photo import ChatPhoto
 
 from typing import List, Dict, Set
 
@@ -23,10 +25,24 @@ Chat table CRUD
 @router.post(
     "/", name="Chat record 생성", description="Chat 테이블에 Record 생성합니다", response_model=chat.RecordChat
 )
-async def create_post(req: chat.RecordChat, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    if req.sender_id == current_user.account_id:
-        raise HTTPException(status_code=401, detail="Unauthorized request")
-    return crud.create_record(Chat, req)
+async def create_post(req: chat.RecordChat, files: List[UploadFile] = File(...), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    db_record = crud.create_record(Chat, chat.SaveChat(**req.dict(), sender_id=current_user.account_id))
+    if req.is_photo:
+        for idx, file in enumerate(files):
+            url = await upload_file(file)
+            temp = chat_photo.ChatPhotoUpload(
+                chat_id=db_record.chat_id,
+                url=url,
+                account_id=current_user.account_id
+            )
+            if idx == 0:
+                temp = crud.create_record(ChatPhoto, temp)
+                rep_photo_id = temp.photo_id
+            else:
+                crud.create_record(ChatPhoto, temp)
+        request = {"chat_str": str(rep_photo_id)}
+        return crud.patch_record(db_record, request)
+    return db_record
 
 
 @router.post(

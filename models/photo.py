@@ -12,11 +12,17 @@ class Photo(Base):
     url = Column(VARCHAR(2000), nullable=False)
     post_id = Column(Integer, ForeignKey("post.post_id"), nullable=False)
     post = relationship("Post", backref="photos")
-    category_id = Column(Integer, ForeignKey("category.category_id"), nullable=False)
-    status = Column(TINYINT, nullable=False)
     account_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
-    update_time = Column(
-        TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    )
+    mysql_engine = "InnoDB"
+
+
+class ChatPhoto(Base):
+    __tablename__ = "chatphoto"
+    chatphoto_id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
+    url = Column(VARCHAR(2000), nullable=False)
+    chat_id = Column(Integer, ForeignKey("post.post_id"), nullable=False)
+    chat = relationship("Chat", backref="chats")
+    account_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
+    create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     mysql_engine = "InnoDB"

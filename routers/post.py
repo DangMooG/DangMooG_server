@@ -39,15 +39,15 @@ async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: 
 async def create_with_photo(req: post.BasePost = Depends(), files: List[UploadFile] = File(...), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     upload = post.PhotoPost(**req.dict(), representative_photo_id=0, account_id=current_user.account_id, username=current_user.username)
     temp_post = crud.create_record(Post, upload)
-    temp_photo = photo.PhotoUpload(
-        post_id=temp_post.post_id,
-        category_id=temp_post.category_id,
-        account_id=current_user.account_id,
-        status=0
-    )
     for idx, file in enumerate(files):
         url = await upload_file(file)
-        temp_photo.url = url
+        temp_photo = photo.PhotoComplete(
+            post_id=temp_post.post_id,
+            category_id=temp_post.category_id,
+            status=0,
+            url=url,
+            account_id=current_user.account_id
+        )
         if idx == 0:
             temp = crud.create_record(Photo, temp_photo)
             rep_photo_id = temp.photo_id
@@ -118,7 +118,7 @@ def read_post(id: int, crud=Depends(get_crud)):
     description="수정하고자 하는 id의 record 전체 수정, record 수정 데이터가 존재하지 않을시엔 생성",
     response_model=post.ReadPost,
 )
-async def update_post(req: post.BasePost, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def update_post(req: post.PhotoPost, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     if req.account_id != current_user.account_id:
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
     filter = {"post_id": id}
@@ -172,7 +172,7 @@ async def delete_post(id: int, crud=Depends(get_crud), current_user: Account = D
     name="Post like +1",
     description="입력된 id에 해당하는 post의 좋아요를 사용자의 계정으로 1개 증가시킵니다.",
 )
-async def like_up(id:int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def like_up(id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"post_id": id}
     db_record = crud.get_record(Post, filter)
     if db_record is None:

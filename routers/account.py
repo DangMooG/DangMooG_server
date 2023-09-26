@@ -12,7 +12,6 @@ from core.schema import RequestPage
 from core.utils import get_crud
 from models.account import Account
 from schemas import account
-from routers.photo import upload_file
 
 from typing import List
 from os import environ
@@ -214,6 +213,7 @@ async def update_post_sub(req: account.PhotoAccount, file: UploadFile = File(...
     db_record = crud.get_record(Account, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
+    from routers.photo import upload_file
     url = await upload_file(file)
     temp = req.model_copy()
     temp.url = url
