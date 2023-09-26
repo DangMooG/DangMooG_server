@@ -6,7 +6,13 @@ from pydantic import BaseModel
 
 class AccountCreate(BaseModel):
     email: str
-    password: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+class AccountSet(AccountCreate):
+    password: str
 
     class Config:
         orm_mode = True
@@ -31,7 +37,6 @@ class ReadAccount(BaseModel):
 
 
 class PatchAccount(BaseModel):
-    username: Optional[str]
     available: Optional[bool]
     jail_until: Optional[datetime]
 

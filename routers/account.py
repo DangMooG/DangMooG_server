@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from jose import jwt, JWTError
 from starlette import status
 from starlette.responses import Response
-from starlette.status import HTTP_204_NO_CONTENT
+from starlette.status import HTTP_204_NO_CONTENT, HTTP_200_OK
 from passlib.context import CryptContext
 
 from core.schema import RequestPage
@@ -49,13 +49,15 @@ def send_mail(to_who):
         smtp.quit()
     return token
 
+
 """
 Account table CRUD
 """
 
+
 @router.post("/mail_send", name="Gist mail 인증 메일 발송", description="기본적으로 회원가입을 진행하기 위해서 사용합니다.\n"
-                                                               "이미 회원이라면 로그인 토큰을 발급받기 위한 과정으로 사용됩니다."
-                                                               "필요한 것은 메일 하나뿐 입니다.\n"
+                                                                  "이미 회원이라면 로그인 토큰을 발급받기 위한 과정으로 사용됩니다."
+                                                                  "필요한 것은 메일 하나뿐 입니다.\n"
                                                                   "password는 None을 보내도 상관없습니다.")
 async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
     if "@gist.ac.kr" not in req.email and "@gm.gist.ac.kr" not in req.email:
@@ -72,9 +74,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
             "message": "이미 존재하는 계정입니다."
         }]))
     else:
-        db_account = req.copy()
-        db_account.password = pwd_context.hash(verification_number)
-        db_account.email = mail_id
+        db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(verification_number))
         crud.create_record(Account, db_account)
         return JSONResponse(jsonable_encoder([{
             "status": 0,
@@ -96,7 +96,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
     response_model=account.Token
 )
 async def active_account(form_data: OAuth2PasswordRequestForm = Depends(),
-                           crud=Depends(get_crud)):
+                         crud=Depends(get_crud)):
     filter = {"email": form_data.username}  # email input required
     user = crud.get_record(Account, filter)
     if not user or not pwd_context.verify(form_data.password, user.password):
@@ -149,12 +149,39 @@ def get_current_user(token: str = Depends(oauth2_scheme),
             raise credentials_exception
         return user
 
+
 @router.post(
-    "/set_user_property", name="Account 세부 정보 수정", description="Account의 username, available, jail_until을 설정합니다",
+    "/is_valid_token", name="Account token 유효 확인", description="현재 유저가 자신이 가지고 있는 토큰이 유효하는지 알려주는 api입니다."
+)
+async def check_token(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        account_id: str = payload.get("sub")
+        if datetime.fromtimestamp(payload.get("exp")) < datetime.utcnow():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        if account_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    else:
+        return HTTP_200_OK
+
+
+@router.post(
+    "/jail_control", name="Account 교도소 관리", description="Account의 available, jail_until을 설정하여 악성 유저의 계정을 정지합니다.",
     response_model=account.AccountCreate
 )
-async def update_post_sub(req: account.PatchAccount, id: int, crud=Depends(get_crud)):
-    filter = {"account_id": id}
+async def update_post_sub(req: account.PatchAccount, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    filter = {"account_id": current_user.account_id}
     db_record = crud.get_record(Account, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
@@ -162,12 +189,12 @@ async def update_post_sub(req: account.PatchAccount, id: int, crud=Depends(get_c
     return crud.patch_record(db_record, req)
 
 
-@router.post(
+@router.patch(
     "/set_username", name="Account 닉네임 설정 및 변경", description="Account의 username(서비스 내에서는 별명)을 설정합니다.",
     response_model=account.AccountCreate
 )
-async def update_post_sub(req: account.NicnameSet, id: int, crud=Depends(get_crud)):
-    filter = {"account_id": id}
+async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    filter = {"account_id": current_user.account_id}
     db_record = crud.get_record(Account, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
@@ -178,12 +205,12 @@ async def update_post_sub(req: account.NicnameSet, id: int, crud=Depends(get_cru
     return crud.patch_record(db_record, req)
 
 
-@router.post(
+@router.patch(
     "/set_user_profile_photo", name="Account record 생성", description="Account의 username, available, jail_until을 설정합니다",
     response_model=account.AccountCreate
 )
-async def update_post_sub(req: account.PhotoAccount, id: int, file: UploadFile = File(...), crud=Depends(get_crud)):
-    filter = {"account_id": id}
+async def update_post_sub(req: account.PhotoAccount, file: UploadFile = File(...), current_use: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    filter = {"account_id": current_use.account_id}
     db_record = crud.get_record(Account, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
@@ -191,6 +218,7 @@ async def update_post_sub(req: account.PhotoAccount, id: int, file: UploadFile =
     temp = req.model_copy()
     temp.url = url
     return crud.patch_record(db_record, temp)
+
 
 @router.post(
     "/page-list",
@@ -247,43 +275,13 @@ def read_account(id: int, crud=Depends(get_crud)):
     return db_record
 
 
-@router.put(
-    "/{id}",
-    name="Account의 한 record 전체 내용 수정",
-    description="수정하고자 하는 id의 record 전체 수정, record 수정 데이터가 존재하지 않을시엔 생성",
-    response_model=account.ReadAccount,
-)
-async def update_post(req: account.AccountCreate, id: int, crud=Depends(get_crud)):
-    filter = {"account_id": id}
-    db_record = crud.get_record(Account, filter)
-    if db_record is None:
-        return crud.create_record(Account, req)
-
-    return crud.update_record(db_record, req)
-
-
-@router.patch(
-    "/{id}",
-    name="Account의 한 record 일부 내용 수정",
-    description="수정하고자 하는 id의 record 일부 수정, record가 존재하지 않을시엔 404 오류 메시지반환합니다",
-    response_model=account.ReadAccount,
-)
-async def update_post_sub(req: account.PatchAccount, id: int, crud=Depends(get_crud)):
-    filter = {"account_id": id}
-    db_record = crud.get_record(Account, filter)
-    if db_record is None:
-        raise HTTPException(status_code=404, detail="Record not found")
-
-    return crud.patch_record(db_record, req)
-
-
 @router.delete(
-    "/{id}",
+    "/",
     name="Account record 삭제",
     description="입력된 id에 해당하는 record를 삭제합니다.",
 )
-async def delete_account(id: int, crud=Depends(get_crud)):
-    filter = {"account_id": id}
+async def delete_account(current_user: Account=Depends(get_current_user), crud=Depends(get_crud)):
+    filter = {"account_id": current_user.account_id}
     db_api = crud.delete_record(Account, filter)
     if db_api != 1:
         raise HTTPException(status_code=404, detail="Record not found")
