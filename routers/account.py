@@ -73,6 +73,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
             "message": "이미 존재하는 계정입니다."
         }]))
     else:
+        req.email = mail_id
         db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(verification_number))
         crud.create_record(Account, db_account)
         return JSONResponse(jsonable_encoder([{
@@ -117,7 +118,8 @@ async def active_account(form_data: OAuth2PasswordRequestForm = Depends(),
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "account_id": user.account_id
+        "account_id": user.account_id,
+        "is_username": 1 if user.username else 0
     }
 
 

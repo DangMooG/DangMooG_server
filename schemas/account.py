@@ -58,6 +58,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     account_id: int
+    is_username: int
 
 
 class RefreshToKen(BaseModel):
