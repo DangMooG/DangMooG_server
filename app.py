@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import (post, account, category, chat, photo)
+from routers import (post, account, category, chat, photo, locker)
 
 from core.db import Base, engine
 
@@ -32,6 +32,7 @@ fastapi_app.include_router(account.router, prefix="/meta")
 fastapi_app.include_router(category.router, prefix="/meta")
 fastapi_app.include_router(chat.router, prefix="/meta")
 fastapi_app.include_router(photo.router, prefix="/meta")
+fastapi_app.include_router(locker.router, prefix="/meta")
 
 
 # 실행 명령어

@@ -20,7 +20,6 @@ from datetime import timedelta, datetime
 import smtplib
 from email.mime.text import MIMEText
 import random
-import traceback
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(
@@ -91,7 +90,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
 @router.post(
     "/verification", name="Mail 인증 번호 확인 API", description="보낸 인증 메일의 번호에 대한 확인과 함께 테이블에 유저 생성이 완료됩니다.\n"
                                                            "추가로 username생성이 필요합니다.\n"
-                                                           "로그인의 형식에 필요한 username은 email의 @앞의 아이디 부분이며, password는 메일로 발송된 인증코드입니다.\n"
+                                                           "로그인의 형식에 필요한 username은 email의 @앞의 아이디 부분이며, password"
+                                                           "는 메일로 발송된 인증코드입니다.\n"
                                                            "5분 이내에 해당 주소를 통해서 메일 인증 즉, 로그인이 진행되어야 합니다.",
     response_model=account.Token
 )
@@ -152,29 +152,11 @@ def get_current_user(token: str = Depends(oauth2_scheme),
 
 
 @router.post(
-    "/is_valid_token", name="Account token 유효 확인", description="현재 유저가 자신이 가지고 있는 토큰이 유효하는지 알려주는 api입니다."
+    "/me", name="Account token 유효 확인 및 유저 스스로 정보 획득", description="현재 유저가 자신이 가지고 있는 토큰이 유효하는지 알려주고 스스로의"
+                                                                  " 정보를 획득할 수 있는 api입니다."
 )
-async def check_token(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        account_id: str = payload.get("sub")
-        if datetime.fromtimestamp(payload.get("exp")) < datetime.utcnow():
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token expired",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        if account_id is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    else:
-        return HTTP_200_OK
+async def check_token(current_user: Account = Depends(get_current_user)):
+    return current_user
 
 
 @router.post(
@@ -188,6 +170,18 @@ async def update_post_sub(req: account.PatchAccount, current_user: Account = Dep
         raise HTTPException(status_code=404, detail="Record not found")
 
     return crud.patch_record(db_record, req)
+
+
+@router.post(
+    "/check_name_duplication", name="Account 닉네임 중복확인", description="body data로 온 username이 데이터베이스에 이미 존재하는 "
+                                                                    "항목인지 확인합니다. 중복일 경우 409를 돌려줍니다."
+)
+async def check_duplication(req: account.NicnameSet, crud=Depends(get_crud)):
+    filter = {"username": req.username}
+    if crud.get_record(Account, filter):
+        raise HTTPException(status_code=409, detail="Already reserved username")
+
+    return HTTP_200_OK
 
 
 @router.patch(
@@ -242,14 +236,14 @@ async def page_account(req: RequestPage, crud=Depends(get_crud)):
 @router.post(
     "/search",
     name="Account 테이블에서 입력한 조건들에 부합하는 record 를 반환하는 API",
-    description="body에 원하는 조건들을 입력하면 and로 필터 결과 리스트를 반환합니다\
-        조건값이 str 일 경우 그 문자열을 포함하는 모든 record를 반환합니다.\
-        조건값이 int,float 일 경우 그 값과 동일한 record만 반환합니다.\
-        조건값이 list 경우 list 항목을 포함하는 모든 record를 반환합니다.\
-    ",
+    description="body에 원하는 조건들을 입력하면 and로 필터 결과 리스트를 반환합니다.\n"
+                "조건값이 str 일 경우 그 문자열을 포함하는 모든 record를 반환합니다.\n"
+                "조건값이 int,float 일 경우 그 값과 동일한 record만 반환합니다.\n"
+                "조건값이 list 경우 list 항목을 포함하는 모든 record를 반환합니다.\n"
+                "dict로 검색가능 필드는 account_id(int), username(str), email(str), profile_url(str), available(int) 입니다.",
     response_model=List[account.ReadAccount],
 )
-async def search_account(filters: account.AccountCreate, crud=Depends(get_crud)):
+async def search_account(filters: dict, crud=Depends(get_crud)):
     return crud.search_record(Account, filters)
 
 

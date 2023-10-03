@@ -33,6 +33,7 @@ async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: 
     upload = post.UploadPost(**req.dict(), account_id=current_user.account_id, username=current_user.username)
     return crud.create_record(Post, upload)
 
+
 @router.post(
     "/create_with_photo", name="Post 사진과 함께 생성", description="Post 테이블에 사진과 함께 Record를 생성합니다",
 )
