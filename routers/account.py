@@ -18,10 +18,13 @@ from schemas import account
 from typing import List
 from os import environ
 from datetime import timedelta, datetime
+import dotenv
 
 import smtplib
 from email.mime.text import MIMEText
 import random
+
+dotenv.load_dotenv(verbose=True)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(
@@ -195,7 +198,7 @@ async def check_duplication(req: account.NicnameSet, crud=Depends(get_crud)):
 
 @router.patch(
     "/set_username", name="Account 닉네임 설정 및 변경", description="Account의 username(서비스 내에서는 별명)을 설정합니다.",
-    response_model=account.AccountCreate
+    response_model=account.NicnameSet
 )
 async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"account_id": current_user.account_id}

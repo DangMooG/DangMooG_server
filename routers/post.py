@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
@@ -12,6 +11,7 @@ from schemas import post, photo
 from routers.account import get_current_user
 from routers.photo import upload_file
 from models.account import Account
+from typing import Optional
 
 import boto3
 
@@ -27,25 +27,29 @@ Post table CRUD
 
 
 @router.post(
-    "/create_post", name="Post record 생성", description="Post 테이블에 Record 생성합니다", response_model=post.ReadPost
+    "/create_post", name="Post record 생성, 사진 기능 없음", description="Post 테이블에 Record 생성합니다", response_model=post.ReadPost
 )
 async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    print(current_user)
     upload = post.UploadPost(**req.dict(), account_id=current_user.account_id, username=current_user.username)
     return crud.create_record(Post, upload)
 
 
 @router.post(
-    "/create_with_photo", name="Post 사진과 함께 생성", description="Post 테이블에 사진과 함께 Record를 생성합니다",
+    "/create_with_photo", name="Post 사진(옵션)과 함께 생성", description="Post 테이블에 사진과 함께 Record를 생성합니다\n"
+                                                                 "사진 없이 그냥 files=처럼 아무런 값 지정하는 것 없이 글을 생성할 수 있습니다.",
+    response_model=post.PatchPost
 )
-async def create_with_photo(req: post.BasePost = Depends(), files: List[UploadFile] = File(...), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def create_with_photo(req: post.BasePost = Depends(), files: Optional[List[UploadFile]] = None, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     upload = post.PhotoPost(**req.dict(), representative_photo_id=0, account_id=current_user.account_id, username=current_user.username)
     temp_post = crud.create_record(Post, upload)
+    if not files:
+        return temp_post
     for idx, file in enumerate(files):
         url = await upload_file(file)
         temp_photo = photo.PhotoComplete(
             post_id=temp_post.post_id,
             category_id=temp_post.category_id,
-            status=0,
             url=url,
             account_id=current_user.account_id
         )
@@ -78,15 +82,27 @@ async def page_post(req: RequestPage, crud=Depends(get_crud)):
 @router.post(
     "/search",
     name="Post 테이블에서 입력한 조건들에 부합하는 record 를 반환하는 API",
-    description="body에 원하는 조건들을 입력하면 and로 필터 결과 리스트를 반환합니다\
-        조건값이 str 일 경우 그 문자열을 포함하는 모든 record를 반환합니다.\
-        조건값이 int,float 일 경우 그 값과 동일한 record만 반환합니다.\
-        조건값이 list 경우 list 항목을 포함하는 모든 record를 반환합니다.\
-    ",
+    description="body에 원하는 조건들을 입력하면 and로 필터 결과 리스트를 반환합니다\n"
+                "조건값이 str 일 경우 그 문자열을 포함하는 모든 record를 반환합니다.\n"
+                "조건값이 int,float 일 경우 그 값과 동일한 record만 반환합니다.\n"
+                "조건값이 list 경우 list 항목을 포함하는 모든 record를 반환합니다.\n"
+                "조건값은 dictionary 형태로 모델에서 검색가능한 [post_id, title, price, description, representative_photo_id, status, account_id, username, liked]\n"
+                "위와 같은 목록들을 검색할 수 있습니다.",
     response_model=List[post.ReadPost],
 )
-async def search_post(filters: post.PatchPost, crud=Depends(get_crud)):
+async def search_post(filters: dict, crud=Depends(get_crud)):
     return crud.search_record(Post, filters)
+
+
+@router.post(
+    "/my_post",
+    name="Post 테이블에서 자신이 작성한 게시물의 post_id 목록을 불러오는 API",
+    description="Header에 사용자가 자신의 토큰을 보내면, 자동으로 사용자가 쓴 글 post_id의 목록을 불러옵니다.",
+)
+async def get_my_post(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    posts = crud.search_record(Post, {"account_id": current_user.account_id})
+    post_ids = [element.post_id for element in posts]
+    return post_ids[::-1]
 
 
 @router.get(

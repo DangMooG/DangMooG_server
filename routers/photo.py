@@ -12,8 +12,11 @@ from schemas import photo, post
 
 from typing import List
 from os import environ
+import dotenv
 
 import boto3
+
+dotenv.load_dotenv(verbose=True)
 
 router = APIRouter(
     prefix="/photo",

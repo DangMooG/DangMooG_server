@@ -35,7 +35,7 @@ fastapi_app.include_router(photo.router, prefix="/meta")
 fastapi_app.include_router(locker.router, prefix="/meta")
 
 
-# 실행 명령어
+# 실행 명령어 디버깅용
 # uvicorn app:fastapi_app --reload
 # --host 0.0.0.0 --port 80
 # 파이썬 코드로 실행시
