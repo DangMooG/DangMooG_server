@@ -1,5 +1,3 @@
-import os
-
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
@@ -9,6 +7,7 @@ from starlette import status
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_200_OK
 from passlib.context import CryptContext
+from pydantic import Field
 
 from core.schema import RequestPage
 from core.utils import get_crud
@@ -58,10 +57,48 @@ Account table CRUD
 """
 
 
-@router.post("/mail_send", name="Gist mail 인증 메일 발송", description="기본적으로 회원가입을 진행하기 위해서 사용합니다.\n"
-                                                                  "이미 회원이라면 로그인 토큰을 발급받기 위한 과정으로 사용됩니다."
-                                                                  "필요한 것은 메일 하나뿐 입니다.\n"
-                                                                  "password는 None을 보내도 상관없습니다.")
+@router.post("/mail_send",
+             name="Gist mail 인증 메일 발송",
+             description="기본적으로 회원가입을 진행하기 위한 메일 발송을 위해 사용합니다.\n\n"
+                         "이미 회원이라면 로그인 토큰을 발급받기 위한 과정으로 사용됩니다.\n\n"
+                         "필요한 것은 GIST메일(gm 메일도 가능) 하나뿐 입니다.",
+             responses={
+                 200: {
+                     "description": "GIST 메일을 통해서 회원가입 요청이 온다면 200 status code 표시와 함께, request body에 입력한"
+                                    "메일로 6자리의 랜덤 정수 코드가 보내집니다. \n\n"
+                                    "Response: 처음 가입시 status 값이 0으로 이미 회원일 경우 status 1과 함께 안내 메시지가 같이 "
+                                    "반환됩니다.",
+                     "content": {
+                         "application/json": {
+                             "examples": {
+                                 "처음 가입 시": {
+                                     "value": {
+                                         "status": 0,
+                                         "message": "메일을 전송하였습니다."
+                                     }
+                                 },
+                                 "이미 가입된 계정일 경우": {
+                                     "value": {
+                                         "status": 1,
+                                         "message": "이미 존재하는 계정입니다."
+                                     }
+                                 }
+                             }
+                         }
+                     }
+                 },
+                 401: {
+                     "description": "지스트 메일을 사용하지 않을 경우의 출력입니다. status code 401",
+                     "content": {
+                         "application/json": {
+                             "example": {
+                                 "detail": "Not valid request, please use gist mail"
+                             }
+                         }
+                     }
+                 }
+             }
+             )
 async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
     if req.email == "dangmoog123@test.com":
         db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(environ["SPECIAL_PWD"]))
@@ -100,10 +137,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
 
 
 @router.post(
-    "/verification", name="Mail 인증 번호 확인 API", description="보낸 인증 메일의 번호에 대한 확인과 함께 테이블에 유저 생성이 완료됩니다.\n"
-                                                           "추가로 username생성이 필요합니다.\n"
-                                                           "로그인의 형식에 필요한 username은 email의 @앞의 아이디 부분이며, password"
-                                                           "는 메일로 발송된 인증코드입니다.\n"
+    "/verification", name="Mail 인증 번호 확인 API", description="보낸 인증 메일의 번호에 대한 확인과 함께 테이블에 유저 생성이 완료됩니다.\n\n"
+                                                           "추가로, 사전에 유저닉네임 설정이 필요합니다. \n\n"
+                                                           "로그인의 형식에 필요한 username은 email의 @앞의 아이디 부분이며,"
+                                                           "password는 메일로 발송된 인증코드입니다.\n\n"
                                                            "5분 이내에 해당 주소를 통해서 메일 인증 즉, 로그인이 진행되어야 합니다.",
     response_model=account.Token
 )

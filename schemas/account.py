@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AccountCreate(BaseModel):
-    email: str
+    email: str = Field(..., example="my_gist_id@gist.ac.kr")
 
     class Config:
         orm_mode = True
