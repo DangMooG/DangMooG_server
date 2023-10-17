@@ -139,10 +139,40 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
 @router.post(
     "/verification", name="Mail 인증 번호 확인 API", description="보낸 인증 메일의 번호에 대한 확인과 함께 테이블에 유저 생성이 완료됩니다.\n\n"
                                                            "추가로, 사전에 유저닉네임 설정이 필요합니다. \n\n"
-                                                           "로그인의 형식에 필요한 username은 email의 @앞의 아이디 부분이며,"
+                                                           "로그인의 형식에 필요한 username은 email의 @앞의 아이디 부분이며, "
                                                            "password는 메일로 발송된 인증코드입니다.\n\n"
                                                            "5분 이내에 해당 주소를 통해서 메일 인증 즉, 로그인이 진행되어야 합니다.",
-    response_model=account.Token
+    response_model=account.Token,
+    responses={
+                 200: {
+                     "description": "access_token은 사용자의 자동 로그인, 사용자 인증을 위한 토큰입니다.(반드시 앱 내에서 저장하고"
+                                    "있어야합니다.)\n\n"
+                                    "token_type은 사용자의 토큰 인증 방식에 관한 내용입니다. JWT에서는 Bearer방식을 사용합니다.\n\n"
+                                    "account_id는 사용자의 계정 식별 번호입니다. 토큰 내에 암호화 되어 저장될 수 입니다.\n\n"
+                                    "is_username은 사용자가 현재 닉네임(DB에서 username)을 설정했는지 여부입니다. 설정했다면 1로"
+                                    "표시되고 아직 닉네임을 설정하지 않았다면 0으로 표시됩니다.",
+                     "content": {
+                         "application/json": {
+                             "example": {
+                                 "access_token": "encrypted hash value",
+                                 "token_type": "bearer",
+                                 "account_id": 127,
+                                 "is_username": 1
+                             }
+                         }
+                     }
+                 },
+                 401: {
+                     "description": "잘못된 비밀번호를 입력했을 때 나오는 출력입니다. status code 401",
+                     "content": {
+                         "application/json": {
+                             "example": {
+                                 "detail": "Incorrect username or password"
+                             }
+                         }
+                     }
+                 }
+             }
 )
 async def active_account(form_data: OAuth2PasswordRequestForm = Depends(),
                          crud=Depends(get_crud)):
@@ -201,8 +231,42 @@ def get_current_user(token: str = Depends(oauth2_scheme),
 
 
 @router.post(
-    "/me", name="Account token 유효 확인 및 유저 스스로 정보 획득", description="현재 유저가 자신이 가지고 있는 토큰이 유효하는지 알려주고 스스로의"
-                                                                  " 정보를 획득할 수 있는 api입니다."
+    "/me",
+    name="Account token 유효 확인 및 유저 스스로 정보 획득",
+    description="현재 유저가 자신이 가지고 있는 토큰이 유효하는지 알려주고 스스로의 정보를 획득할 수 있는 api입니다.\n\n"
+                "-H 'Authorization: Bearer {token hash} \n\n"
+                "위 같이 헤더에 Bearer방식으로 토큰을 넣어서 post하면 됩니다.",
+    response_model=account.ReadAccount,
+    response_model_exclude=["create_time", "update_time", "available", "jail_until"],
+    responses={
+        200: {
+            "description": "정상적으로 인증이 완료되었을 때.\n\n"
+                           "account_id는 사용자 식별용 id이며 정수형태입니다.\n\n"
+                           "username은 사용자의 닉네임입니다. 설정하지 않았다면 null값을 반환합니다.\n\n"
+                           "email은 사용자의 GIST메일의 아이디 부분만을 가져옵니다.\n\n"
+                           "profile_url은 사용자가 설정한 프로필 사진을 저장하고 있는 URL입니다. 설정하지 않았다면 null을 반환합니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "account_id": 1,
+                        "username": "jaesun",
+                        "email": "rejaealsun",
+                        "profile_url": "https:// object_storage_url"
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "로그인 하지 않고 시도할 경우의 반환값입니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Not authenticated"
+                    }
+                }
+            }
+        }
+    }
 )
 async def check_token(current_user: Account = Depends(get_current_user)):
     return current_user
@@ -223,7 +287,27 @@ async def update_post_sub(req: account.PatchAccount, current_user: Account = Dep
 
 @router.post(
     "/check_name_duplication", name="Account 닉네임 중복확인", description="body data로 온 username이 데이터베이스에 이미 존재하는 "
-                                                                    "항목인지 확인합니다. 중복일 경우 409를 돌려줍니다."
+                                                                    "항목인지 확인합니다. 중복일 경우 409를 돌려줍니다.",
+    responses={
+        200: {
+            "description": "단순히 200 status code를 반환합니다.",
+            "content": {
+                "application/json": {
+                    "example": 200
+                }
+            }
+        },
+        409: {
+            "description": "이미 존재하는 닉네임이라는 것을 알려주는 status code입니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Already reserved username"
+                    }
+                }
+            }
+        }
+    }
 )
 async def check_duplication(req: account.NicnameSet, crud=Depends(get_crud)):
     filter = {"username": req.username}
@@ -234,8 +318,40 @@ async def check_duplication(req: account.NicnameSet, crud=Depends(get_crud)):
 
 
 @router.patch(
-    "/set_username", name="Account 닉네임 설정 및 변경", description="Account의 username(서비스 내에서는 별명)을 설정합니다.",
-    response_model=account.NicnameSet
+    "/set_username", name="Account 닉네임 설정 및 변경", description="Account의 username(서비스 내에서는 닉네임)을 설정합니다.",
+    response_model=account.NicnameSet,
+    responses={
+        200: {
+            "description": "설정된 닉네임을 다시 반환합니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "username": "the_nickname_is_yours_now!"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "사용자를 찾을 수 없을 때 반환하는 status code입니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Record not found"
+                    }
+                }
+            }
+        },
+        409: {
+            "description": "이미 존재하는 닉네임이라는 것을 알려주는 status code입니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Already reserved username"
+                    }
+                }
+            }
+        }
+    }
 )
 async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"account_id": current_user.account_id}
@@ -250,18 +366,45 @@ async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), curre
 
 
 @router.patch(
-    "/set_user_profile_photo", name="Account record 생성", description="Account의 username, available, jail_until을 설정합니다",
-    response_model=account.AccountCreate
+    "/set_user_profile_photo",
+    name="Account profile photo 업로드 및 설정",
+    description="사용자의 프로필 이미지를 설정합니다. 토큰과 함께, 설정할 사진을 전송하면 됩니다.",
+    response_model=account.ReadAccount,
+    response_model_exclude=["create_time", "update_time", "available", "jail_until"],
+    responses={
+        200: {
+            "description": "변경된 사용자의 정보를 다시 반환합니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "account_id": 1,
+                        "username": "jaesun",
+                        "email": "rejaealsun",
+                        "profile_url": "https:// changed_profile_url"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "사용자를 찾을 수 없을 때 반환하는 status code입니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Record not found"
+                    }
+                }
+            }
+        }
+    }
 )
-async def update_post_sub(req: account.PhotoAccount, file: UploadFile = File(...), current_use: Account = Depends(get_current_user), crud=Depends(get_crud)):
+async def update_post_sub(file: UploadFile = File(...), current_use: Account = Depends(get_current_user), crud=Depends(get_crud)):
     filter = {"account_id": current_use.account_id}
     db_record = crud.get_record(Account, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
     from routers.photo import upload_file
     url = await upload_file(file)
-    temp = req.model_copy()
-    temp.url = url
+    temp = account.PhotoAccount(profile_url=url)
     return crud.patch_record(db_record, temp)
 
 

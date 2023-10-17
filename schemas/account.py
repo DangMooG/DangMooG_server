@@ -31,7 +31,7 @@ class ReadAccount(BaseModel):
     email: str
     profile_url: Optional[str]
     available: Optional[int]
-    jail_until: datetime
+    jail_until: Optional[datetime]
     create_time: datetime
     update_time: datetime
 
@@ -45,7 +45,7 @@ class PatchAccount(BaseModel):
 
 
 class NicnameSet(BaseModel):
-    username: Optional[str]
+    username: Optional[str] = Field(..., example="trial_your_nickname")
 
     class Config:
         orm_mode = True
