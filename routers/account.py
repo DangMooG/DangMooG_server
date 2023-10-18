@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Body
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -237,7 +237,7 @@ def get_current_user(token: str = Depends(oauth2_scheme),
                 "-H 'Authorization: Bearer {token hash} \n\n"
                 "위 같이 헤더에 Bearer방식으로 토큰을 넣어서 post하면 됩니다.",
     response_model=account.ReadAccount,
-    response_model_exclude=["create_time", "update_time", "available", "jail_until"],
+    response_model_exclude={"create_time", "update_time", "available", "jail_until"},
     responses={
         200: {
             "description": "정상적으로 인증이 완료되었을 때.\n\n"
@@ -370,7 +370,7 @@ async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), curre
     name="Account profile photo 업로드 및 설정",
     description="사용자의 프로필 이미지를 설정합니다. 토큰과 함께, 설정할 사진을 전송하면 됩니다.",
     response_model=account.ReadAccount,
-    response_model_exclude=["create_time", "update_time", "available", "jail_until"],
+    response_model_exclude={"create_time", "update_time", "available", "jail_until"},
     responses={
         200: {
             "description": "변경된 사용자의 정보를 다시 반환합니다.",
@@ -428,14 +428,22 @@ async def page_account(req: RequestPage, crud=Depends(get_crud)):
 @router.post(
     "/search",
     name="Account 테이블에서 입력한 조건들에 부합하는 record 를 반환하는 API",
-    description="body에 원하는 조건들을 입력하면 and로 필터 결과 리스트를 반환합니다.\n"
-                "조건값이 str 일 경우 그 문자열을 포함하는 모든 record를 반환합니다.\n"
-                "조건값이 int,float 일 경우 그 값과 동일한 record만 반환합니다.\n"
-                "조건값이 list 경우 list 항목을 포함하는 모든 record를 반환합니다.\n"
-                "dict로 검색가능 필드는 account_id(int), username(str), email(str), profile_url(str), available(int) 입니다.",
+    description="body에 원하는 조건들을 입력하면 and로 필터 결과 리스트를 반환합니다.\n\n"
+                "조건값이 str 일 경우 그 문자열을 포함하는 모든 record를 반환합니다.\n\n"
+                "조건값이 int,float 일 경우 그 값과 동일한 record만 반환합니다.\n\n"
+                "조건값이 list 경우 list 항목을 포함하는 모든 record를 반환합니다.\n\n"
+                "dict로 검색가능 필드는 account_id(int), username(str), email(str), profile_url(str), available(int) 입니다."
+                "\n\n모든 필드에 값을 넣어서 검색하지 않아도 됩니다. 원하는 필드만 사용하여서 검색이 가능합니다.",
     response_model=List[account.ReadAccount],
+    response_model_exclude={"create_time", "update_time", "available", "jail_until"}
 )
-async def search_account(filters: dict, crud=Depends(get_crud)):
+async def search_account(filters: dict = Body(..., examples=[{
+    "account_id": 1,
+    "username": "jaesun",
+    "email": "rejaealsun",
+    "profile_url": "https:// my_profile_url",
+    "available": 1
+  }]), crud=Depends(get_crud)):
     return crud.search_record(Account, filters)
 
 
@@ -466,7 +474,7 @@ def read_account(id: int, crud=Depends(get_crud)):
 @router.delete(
     "/",
     name="Account record 삭제",
-    description="입력된 id에 해당하는 record를 삭제합니다.",
+    description="입력된 id에 해당하는 Account record를 삭제합니다.",
 )
 async def delete_account(current_user: Account=Depends(get_current_user), crud=Depends(get_crud)):
     filter = {"account_id": current_user.account_id}

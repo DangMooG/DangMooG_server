@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 """
@@ -10,11 +10,11 @@ Post 테이블 schema
 
 
 class BasePost(BaseModel):
-    title: str
-    price: int
-    description: str
-    category_id: int
-    status: int
+    title: str = Field(..., example="짱구 띠부띠부 스티커 한정판")
+    price: int = Field(..., example=10000)
+    description: str = Field(..., example="정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.")
+    category_id: int = Field(..., example=3)
+    status: int = Field(..., example=0)
 
     class Config:
         orm_mode = True
@@ -65,3 +65,34 @@ class LikedPatch(BaseModel):
 class ReadLiked(LikedPatch):
     liked_id: int
     create_time: datetime
+
+
+class Item(BaseModel):
+    price: int
+    post_id: int
+    description: str
+    category_id: int
+    liked: int
+    update_time: datetime
+    title: str
+    representative_photo_id: Optional[int]
+    status: int
+    username: str
+    create_time: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class ResponseModel(BaseModel):
+    items: List[Item]
+    total_pages: int
+    page: int
+    size: int
+    total_row: int
+
+
+class AppResponseModel(BaseModel):
+    items: List[Item]
+    next_checkpoint: int
+
