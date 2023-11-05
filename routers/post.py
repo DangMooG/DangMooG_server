@@ -89,6 +89,7 @@ async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: 
                                  "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
                                  "category_id": 1,
                                  "status": 0,
+                                 "use_locker": 0,
                                  "username": "your_nickname",
                                  "post_id": 7,
                                  "representative_photo_id": 13
@@ -98,7 +99,7 @@ async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: 
                  }
              }
 )
-async def create_with_photo(req: post.BasePost = Depends(), files: Optional[List[UploadFile]] = None, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def create_with_photo(req: post.BasePost = Depends(), files: List[UploadFile] = File(...), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     upload = post.PhotoPost(**req.dict(), representative_photo_id=0, account_id=current_user.account_id, username=current_user.username)
     temp_post = crud.create_record(Post, upload)
     if not files:
