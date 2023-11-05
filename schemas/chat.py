@@ -9,6 +9,24 @@ Chat 테이블 schema
 """
 
 
+class RoomNumber(BaseModel):
+    post_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class RoomCreate(RoomNumber):
+    buyer_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class RoomID(BaseModel):
+    room_id: int
+
+
 class RecordChat(BaseModel):
     post_id: int
     room_id: Optional[int]
