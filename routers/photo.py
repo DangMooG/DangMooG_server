@@ -88,7 +88,7 @@ async def page_post(req: RequestPage, crud=Depends(get_crud)):
     ",
     response_model=List[photo.ReadPhoto],
 )
-async def search_post(filters: photo.SearchPhoto, crud=Depends(get_crud)):
+async def search_post(filters: dict, crud=Depends(get_crud)):
     return crud.search_record(Photo, filters)
 
 

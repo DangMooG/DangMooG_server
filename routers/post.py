@@ -47,6 +47,7 @@ Post table CRUD
                                  "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
                                  "category_id": 1,
                                  "status": 0,
+                                 "use_locker": 1,
                                  "username": "your_nickname",
                                  "post_id": 1
                              }
