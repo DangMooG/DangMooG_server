@@ -63,9 +63,7 @@ def read_post(id: int, crud=Depends(get_crud)):
     description="수정하고자 하는 id의 record 일부 수정, record가 존재하지 않을시엔 404 오류 메시지반환합니다",
     response_model=locker.ReadLocker,
 )
-async def update_post_sub(req: locker.UseLocker, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    if req.account_id != current_user.account_id:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
+async def update_post_sub(req: dict, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"post_id": id}
     db_record = crud.get_record(Locker, filter)
     if db_record is None:
@@ -73,4 +71,4 @@ async def update_post_sub(req: locker.UseLocker, id: int, crud=Depends(get_crud)
     if db_record.account_id == current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
 
-    return crud.patch_record(db_record, req)
+    return crud.patch_record(db_record, {**req, "account_id": current_user.account_id})
