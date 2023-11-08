@@ -50,7 +50,7 @@ def get_list(crud=Depends(get_crud)):
     response_model=locker.ReadLocker,
 )
 def read_post(id: int, crud=Depends(get_crud)):
-    filter = {"post_id": id}
+    filter = {"locker_id": id}
     db_record = crud.get_record(Locker, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
