@@ -103,6 +103,7 @@ async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: 
 async def create_with_photo(req: post.BasePost = Depends(), files: List[UploadFile] = File(...), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     upload = post.PhotoPost(**req.dict(), representative_photo_id=0, account_id=current_user.account_id, username=current_user.username)
     temp_post = crud.create_record(Post, upload)
+    search_id = temp_post.post_id
     if not files:
         return temp_post
     for idx, file in enumerate(files):
@@ -119,7 +120,8 @@ async def create_with_photo(req: post.BasePost = Depends(), files: List[UploadFi
         else:
             crud.create_record(Photo, temp_photo)
     request = {"representative_photo_id": rep_photo_id}
-    return crud.patch_record(temp_post, request)
+    crud.patch_record(temp_post, request)
+    return crud.get_record(Post, {"post_id": search_id})
 
 
 @router.post(
