@@ -23,7 +23,7 @@ class BasePost(BaseModel):
 class PhotoPost(BasePost):
     account_id: int
     username: str
-    representative_photo_id: int
+    representative_photo_id: Optional[int]
     status: int = 0
 
 
@@ -43,6 +43,7 @@ class ReadPost(PhotoPost):
 
 
 class PatchPost(BaseModel):
+    post_id: int
     title: Optional[str]
     price: Optional[int]
     description: Optional[str]
