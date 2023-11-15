@@ -45,7 +45,9 @@ async def search_post(filters: dict, crud=Depends(get_crud)):
 def get_list(crud=Depends(get_crud)):
     for one_locker in crud.get_list(Locker):
         if one_locker.post_id is not None:
-            if one_locker.post_id is None and datetime.now() > one_locker.update_time + timedelta(minutes=5):
+            if one_locker.post_id is None and one_locker.account_id is None and datetime.now() > one_locker.update_time + timedelta(minutes=5):
+                crud.patch_record(one_locker, {"status": 1, "account_id": None})
+            elif one_locker.post_id is None and datetime.now() > one_locker.update_time + timedelta(minutes=30):
                 crud.patch_record(one_locker, {"status": 1, "account_id": None})
             corresponded_post = crud.get_record(Post, {"post_id": one_locker.post_id})
             if corresponded_post.status == 2:
