@@ -9,6 +9,7 @@ from models.locker import Locker
 from schemas import locker
 from routers.account import get_current_user
 from models.account import Account
+from models.post import Post
 
 from typing import List
 
@@ -42,7 +43,15 @@ async def search_post(filters: dict, crud=Depends(get_crud)):
     response_model=List[locker.ReadLocker],
 )
 def get_list(crud=Depends(get_crud)):
+    for one_locker in crud.get_list(Locker):
+        if one_locker.post_id is not None:
+            if one_locker.post_id is None and datetime.now() > one_locker.update_time + timedelta(minutes=30):
+                crud.patch_record(one_locker, {"status": 1, "account_id": None})
+            corresponded_post = crud.get_record(Post, {"post_id": one_locker.post_id})
+            if corresponded_post.status == 2:
+                crud.patch_record(one_locker, {"status": 1, "post_id": None, "account_id": None})
     return crud.get_list(Locker)
+
 
 
 @router.get(
@@ -68,11 +77,8 @@ def read_post(id: int, crud=Depends(get_crud)):
 async def update_post_sub(req: dict, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"locker_id": id}
     db_record = crud.get_record(Locker, filter)
-    return crud.patch_record(db_record, {**req, "account_id": current_user.account_id})
-    """if db_record is None:
+    if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
-    if db_record.status == 0 or (db_record.post_id is None and db_record.account_id is None and datetime.now() > 
-                                 db_record.update_time + timedelta(minutes=5)):
-        return crud.patch_record(db_record, {**req, "account_id": current_user.account_id})
-    else:
-        raise HTTPException(status_code=401, detail="Unauthorized request")"""
+    if db_record.status == 0:
+        raise HTTPException(status_code=401, detail="Unauthorized request")
+    return crud.patch_record(db_record, {**req, "account_id": current_user.account_id})
