@@ -330,6 +330,41 @@ async def get_my_post(current_user: Account = Depends(get_current_user), crud=De
     return {"result": post_ids[::-1]}
 
 
+@router.post(
+    "/my_items",
+    name="Post 테이블에서 자신이 구매한 게시물의 post_id 목록을 불러오는 API",
+    description="Header에 사용자가 자신의 토큰을 보내면, 자동으로 사용자가 쓴 글 post_id의 목록을 불러옵니다.",
+    responses={
+        200: {
+            "description": "정상적으로 게시물이 데이터베이스에서 가져와졌을 때의 출력입니다.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "result":
+                            [
+                                10,
+                                9,
+                                8,
+                                7,
+                                6,
+                                5,
+                                4,
+                                3,
+                                2,
+                                1
+                            ]
+                    }
+                }
+            }
+        }
+    }
+)
+async def get_my_post(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    posts = crud.search_record(Post, {"buyer": current_user.account_id})
+    post_ids = [element.post_id for element in posts]
+    return {"result": post_ids[::-1]}
+
+
 @router.get(
     "/list",
     name="Post 리스트 조회",
@@ -377,12 +412,39 @@ async def update_post(req: post.PhotoPost, id: int, crud=Depends(get_crud), curr
 @router.patch(
     "/{id}",
     name="Post 한 record 일부 내용 수정",
-    description="수정하고자 하는 id의 record 일부 수정, record가 존재하지 않을시엔 404 오류 메시지반환합니다",
+    description="수정하고자 하는 id의 record 일부 수정, record가 존재하지 않을시엔 404 오류 메시지반환합니다\n\n"
+                "예시 중에 변경하고 싶은 key와 value만 지정하면 됩니다.",
     response_model=post.ReadPost,
+    response_model_exclude={"account_id", "liked", "create_time", "update_time"},
+    responses={
+                 200: {
+                     "description": "정상적으로 게시물이 데이터베이스에 업데이트 되었을 때의 출력입니다.",
+                     "content": {
+                         "application/json": {
+                             "example": {
+                                 "title": "짱구 띠부띠부 스티커 한정판",
+                                 "price": 10000,
+                                 "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                 "category_id": 1,
+                                 "status": 0,
+                                 "use_locker": 0,
+                                 "username": "your_nickname",
+                                 "post_id": 7,
+                                 "representative_photo_id": 13
+                             }
+                         }
+                     }
+                 }
+             }
 )
-async def update_post_sub(req: post.PatchPost, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    if req.account_id != current_user.account_id:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized request")
+async def update_post_sub(id: int, req: dict = Body(..., examples=[{
+    "post_id": 1,
+    "title": "post title example",
+    "price": 10000,
+    "description": "post_description",
+    "representative_photo_id": 1,
+    "status": 0,
+}]), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"post_id": id}
     db_record = crud.get_record(Post, filter)
     if db_record is None:
