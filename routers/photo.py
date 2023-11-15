@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
@@ -15,6 +17,7 @@ from os import environ
 import dotenv
 
 import boto3
+import uuid
 
 dotenv.load_dotenv(verbose=True)
 
@@ -26,7 +29,7 @@ router = APIRouter(
 Photo table CRUD
 """
 
-async def upload_file(file: File(...)):
+async def upload_file(file: File(...), folder_name: str):
     try:
         # s3 클라이언트 생성
         s3 = boto3.client(
@@ -38,8 +41,10 @@ async def upload_file(file: File(...)):
     except Exception as e:
         print(e)
     else:
-        s3.upload_fileobj(file.file, "dangmuzi-photo", file.filename)
-        return "https://dangmuzi-photo.s3.ap-northeast-2.amazonaws.com/"+file.filename
+        _, file_extension = os.path.splitext(file.filename)
+        random_file_name = f"{folder_name}/{str(uuid.uuid4()) + file_extension}"
+        s3.upload_fileobj(file.file, "dangmuzi-photo", random_file_name)
+        return "https://dangmuzi-photo.s3.ap-northeast-2.amazonaws.com/"+random_file_name
 
 
 
@@ -49,7 +54,7 @@ async def upload_file(file: File(...)):
 )
 async def create_post(req: photo.PhotoUpload = Depends(), files: List[UploadFile] = File(...), current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     for idx, file in enumerate(files):
-        url = await upload_file(file)
+        url = await upload_file(file, "post")
         temp = photo.PhotoComplete(**req.dict(), url=url, account_id=current_user.account_id)
         if idx == 0:
             temp = crud.create_record(Photo, temp)

@@ -29,7 +29,7 @@ async def create_post(req: chat.RecordChat, files: List[UploadFile] = File(...),
     db_record = crud.create_record(Chat, chat.SaveChat(**req.dict(), sender_id=current_user.account_id))
     if req.is_photo:
         for idx, file in enumerate(files):
-            url = await upload_file(file)
+            url = await upload_file(file, "post")
             temp = chat_photo.ChatPhotoUpload(
                 chat_id=db_record.chat_id,
                 url=url,

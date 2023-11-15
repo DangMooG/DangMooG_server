@@ -107,7 +107,7 @@ async def create_with_photo(req: post.BasePost = Depends(), files: Optional[List
     if not files:
         return temp_post
     for idx, file in enumerate(files):
-        url = await upload_file(file)
+        url = await upload_file(file, "post")
         temp_photo = photo.PhotoComplete(
             post_id=temp_post.post_id,
             category_id=temp_post.category_id,

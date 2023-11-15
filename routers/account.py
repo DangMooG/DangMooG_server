@@ -405,7 +405,7 @@ async def update_post_sub(file: UploadFile = File(...), current_use: Account = D
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
     from routers.photo import upload_file
-    url = await upload_file(file)
+    url = await upload_file(file, "profile")
     temp = account.PhotoAccount(profile_url=url)
     return crud.patch_record(db_record, temp)
 
