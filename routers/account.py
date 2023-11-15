@@ -361,7 +361,9 @@ async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), curre
     filter = {"username": req.username}
     if crud.get_record(Account, filter):
         raise HTTPException(status_code=409, detail="Already reserved username")
-
+    limit_day = db_record.update_time + timedelta(days=30)
+    if db_record.username and datetime.now() < limit_day:
+        raise HTTPException(status_code=401, detail=f"{limit_day} 이후에 닉네임을 변결할 수 있습니다.")
     return crud.patch_record(db_record, req)
 
 

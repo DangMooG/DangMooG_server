@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
@@ -56,19 +58,21 @@ def read_post(id: int, crud=Depends(get_crud)):
         raise HTTPException(status_code=404, detail="Record not found")
     return db_record
 
-
 @router.patch(
     "/{id}",
     name="Locker 하나의 record 내용 수정(예약, 사용완료 등 상태 변경 시 사용)",
-    description="수정하고자 하는 id의 record 일부 수정, record가 존재하지 않을시엔 404 오류 메시지반환합니다",
+    description="수정하고자 하는 id의 record 일부 수정, record가 존재하지 않을시엔 404 오류 메시지반환합니다\n\n"
+                "status가 0이거나, account_id와 post_id가 null로 설정된 경우에는 ",
     response_model=locker.ReadLocker,
 )
 async def update_post_sub(req: dict, id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"locker_id": id}
     db_record = crud.get_record(Locker, filter)
-    if db_record is None:
-        raise HTTPException(status_code=404, detail="Record not found")
-    if db_record.account_id != current_user.account_id:
-        raise HTTPException(status_code=401, detail="Unauthorized request")
-
     return crud.patch_record(db_record, {**req, "account_id": current_user.account_id})
+    """if db_record is None:
+        raise HTTPException(status_code=404, detail="Record not found")
+    if db_record.status == 0 or (db_record.post_id is None and db_record.account_id is None and datetime.now() > 
+                                 db_record.update_time + timedelta(minutes=5)):
+        return crud.patch_record(db_record, {**req, "account_id": current_user.account_id})
+    else:
+        raise HTTPException(status_code=401, detail="Unauthorized request")"""
