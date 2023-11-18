@@ -62,6 +62,10 @@ async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: 
     return crud.create_record(Post, upload)
 
 
+async def get_files(files: List[UploadFile] = File(...)) -> Optional[List[UploadFile]]:
+    return files
+
+
 @router.post(
     "/create_with_photo", name="Post 사진(옵션)과 함께 생성", description="Post 테이블에 사진과 함께 Record를 생성합니다\n\n"
                                                                  "사진 없이 그냥 files=처럼 아무런 값 지정하는 것 없이 글을 "
@@ -100,7 +104,7 @@ async def create_post(req: post.BasePost, crud=Depends(get_crud), current_user: 
                  }
              }
 )
-async def create_with_photo(req: post.BasePost = Depends(), files: Optional[List[UploadFile]] = None, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def create_with_photo(req: post.BasePost = Depends(), files: Optional[List[UploadFile]] = Depends(get_files), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     upload = post.PhotoPost(**req.dict(), representative_photo_id=0, account_id=current_user.account_id, username=current_user.username)
     temp_post = crud.create_record(Post, upload)
     search_id = temp_post.post_id
