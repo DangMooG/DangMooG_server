@@ -24,7 +24,7 @@ mysqlclient==2.2.0
 passlib==1.7.4
 pyasn1==0.5.0
 pycparser
-pydantic==2.3.0
+pydantic==1.10.10
 pydantic_core==2.6.3
 pyOpenSSL
 PySocks
