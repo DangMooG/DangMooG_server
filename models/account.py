@@ -22,3 +22,17 @@ class Account(Base):
     )
 
     mysql_engine = "InnoDB"
+
+    def to_dict(self):
+        return {
+            "account_id": self.account_id,
+            "username": self.username,
+            "password": self.password,
+            "email": self.email,
+            "profile_url": self.profile_url,
+            "available": self.available,
+            "jail_until": self.jail_until,
+            "refresh_token": self.refresh_token,
+            "create_time": self.create_time,
+            "update_time": self.update_time
+        }

@@ -269,7 +269,7 @@ def get_current_user(token: str = Depends(oauth2_scheme),
     }
 )
 async def check_token(current_user: Account = Depends(get_current_user)):
-    return current_user
+    return current_user.to_dict()
 
 
 @router.post(
