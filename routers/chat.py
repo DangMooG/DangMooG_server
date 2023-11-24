@@ -52,7 +52,8 @@ async def create_post(req: chat.RecordChat, files: List[UploadFile] = File(...),
     response_model=chat.RoomID
 )
 async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    return crud.create_record(Room, chat.RoomCreate(**req.dict(), buyer_id=current_user.account_id))
+    return crud.create_record(Room, chat.RoomCreate(**req.dict(), buyer_id=current_user.account_id, status=0))
+
 
 @router.post(
     "/page-list",
