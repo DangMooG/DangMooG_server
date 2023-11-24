@@ -49,10 +49,10 @@ async def create_post(req: chat.RecordChat, files: List[UploadFile] = File(...),
     "/create_post_chat_room", name="chat room 조회", description="채팅방의 Websocket 접속을 위한 방의 UUID를 가져옵니다.\n\n"
                                                        "본인임을 인증하기 위해서 토큰이 필요하고, 추가로 접근하고자 하는 게시물의 post id를 "
                                                        "같이 담아서 보내야 합니다.",
-    response_model=chat.RoomID
 )
 async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    return crud.create_record(Room, chat.RoomCreate(**req.dict(), buyer_id=current_user.account_id, status=0))
+    chat_room = crud.create_record(Room, chat.RoomCreate(**req.dict(), buyer_id=current_user.account_id, status=0))
+    return {"room_id": chat_room.room_id}
 
 
 @router.post(
