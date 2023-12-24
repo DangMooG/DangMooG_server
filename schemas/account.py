@@ -35,6 +35,9 @@ class ReadAccount(BaseModel):
     create_time: datetime
     update_time: datetime
 
+    class Config:
+        orm_mode = True
+
 
 class PatchAccount(BaseModel):
     available: Optional[bool]

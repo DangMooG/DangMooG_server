@@ -117,6 +117,13 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
     if is_exist:
         update = account.AccountReceate(password=pwd_context.hash(verification_number))
         crud.patch_record(is_exist, update)
+        if is_exist.status == 3:
+            crud.patch_record(is_exist, {"status": 0})
+            return JSONResponse(jsonable_encoder([{
+                "status": 1,
+                "message": "재가입 계정입니다."
+            }]))
+
         return JSONResponse(jsonable_encoder([{
             "status": 1,
             "message": "이미 존재하는 계정입니다."
@@ -481,7 +488,11 @@ def read_account(id: int, crud=Depends(get_crud)):
 )
 async def delete_account(current_user: Account=Depends(get_current_user), crud=Depends(get_crud)):
     filter = {"account_id": current_user.account_id}
-    db_api = crud.delete_record(Account, filter)
-    if db_api != 1:
+    record = crud.get_record(Account, filter)
+    posts = crud.search_record(Post, filter)
+    for post in posts:
+        crud.patch_record(post, {"status": 3, "username": "알 수 없는 사용자"})
+    crud.patch_record(record, {"available": 3})
+    if record is None:
         raise HTTPException(status_code=404, detail="Record not found")
     return Response(status_code=HTTP_204_NO_CONTENT)
