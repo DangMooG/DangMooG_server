@@ -12,6 +12,7 @@ from pydantic import Field
 from core.schema import RequestPage
 from core.utils import get_crud
 from models.account import Account
+from models.post import Post
 from schemas import account
 
 from typing import List

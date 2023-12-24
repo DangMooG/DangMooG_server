@@ -18,6 +18,7 @@ class RoomNumber(BaseModel):
 
 class RoomCreate(RoomNumber):
     buyer_id: int
+    seller_id: int
     status: int
 
     class Config:

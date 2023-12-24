@@ -10,6 +10,7 @@ from routers.account import get_current_user
 from routers.photo import upload_file
 from models.account import Account
 from models.photo import ChatPhoto
+from models.post import Post
 
 from typing import List, Dict, Set
 
@@ -48,10 +49,15 @@ async def create_post(req: chat.RecordChat, files: List[UploadFile] = File(...),
 @router.post(
     "/create_post_chat_room", name="chat room 조회", description="채팅방의 Websocket 접속을 위한 방의 UUID를 가져옵니다.\n\n"
                                                        "본인임을 인증하기 위해서 토큰이 필요하고, 추가로 접근하고자 하는 게시물의 post id를 "
-                                                       "같이 담아서 보내야 합니다.",
+                                                       "같이 담아서 보내야 합니다.\n\n"
+                                                               "만약 기존에 방이 존재하다면 기존에 생성된 채팅방의 room_id를 보냅니다.",
 )
 async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    chat_room = crud.create_record(Room, chat.RoomCreate(**req.dict(), buyer_id=current_user.account_id, status=0))
+    ifroom = crud.search_record(Room, {"post_id": req.post_id, "buyer_id": current_user.account_id})
+    if ifroom:
+        return {"room_id": ifroom[1].room_id}
+    seller = crud.search_record(Account, {"username": crud.get_record(Post, {"post_id": req.post_id}).username})
+    chat_room = crud.create_record(Room, chat.RoomCreate(**req.dict(), seller_id=seller[0].account_id, buyer_id=current_user.account_id, status=0))
     return {"room_id": chat_room.room_id}
 
 

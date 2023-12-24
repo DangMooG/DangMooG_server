@@ -463,7 +463,7 @@ async def update_post_sub(id: int, req: dict = Body(..., examples=[{
 async def delete_post(id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"post_id": id}
     db_record = crud.get_record(Post, filter)
-    if id != current_user.account_id or db_record is None:
+    if db_record.account_id != current_user.account_id or db_record is None:
         raise HTTPException(status_code=401, detail="Unauthorized request")
     db_api = crud.delete_record(Post, filter)
     if db_api != 1:
