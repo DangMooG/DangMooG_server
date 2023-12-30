@@ -32,7 +32,7 @@ class Account(Base):
             "profile_url": self.profile_url,
             "available": self.available,
             "jail_until": self.jail_until,
-            "refresh_token": self.refresh_token,
+            "fcm": self.fcm,
             "create_time": self.create_time,
             "update_time": self.update_time
         }
