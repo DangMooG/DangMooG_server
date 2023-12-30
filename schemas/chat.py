@@ -30,11 +30,10 @@ class RoomID(BaseModel):
 
 
 class RecordChat(BaseModel):
-    post_id: int
-    room_id: Optional[int]
-    receiver_id: Optional[int]
-    is_photo: int
-    chat_str: Optional[str]
+    message_id: int
+    is_from_buyer: int
+    content: str
+    read: int
 
     class Config:
         orm_mode = True
