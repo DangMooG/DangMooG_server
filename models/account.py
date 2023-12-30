@@ -15,7 +15,7 @@ class Account(Base):
     profile_url = Column(VARCHAR(2000))
     available = Column(TINYINT, nullable=False)
     jail_until = Column(TIMESTAMP)
-    refresh_token = Column(TEXT)
+    fcm = Column(TEXT)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")

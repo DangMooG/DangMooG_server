@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Body
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Body, Form
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -6,6 +6,7 @@ from jose import jwt, JWTError
 from starlette import status
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_200_OK
+from typing_extensions import Annotated
 from passlib.context import CryptContext
 from pydantic import Field
 
@@ -146,6 +147,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
 
 @router.post(
     "/verification", name="Mail 인증 번호 확인 API", description="보낸 인증 메일의 번호에 대한 확인과 함께 테이블에 유저 생성이 완료됩니다.\n\n"
+                                                           "fcm은 사용자의 알림을 받기위한 클라우드메시징 토큰값을 넣는 곳입니다."
                                                            "추가로, 사전에 유저닉네임 설정이 필요합니다. \n\n"
                                                            "로그인의 형식에 필요한 username은 email의 @앞의 아이디 부분이며, "
                                                            "password는 메일로 발송된 인증코드입니다.\n\n"
@@ -182,10 +184,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
                  }
              }
 )
-async def active_account(form_data: OAuth2PasswordRequestForm = Depends(),
+async def active_account(fcm: Annotated[str, Form()], form_data: OAuth2PasswordRequestForm = Depends(),
                          crud=Depends(get_crud)):
     filter = {"email": form_data.username}  # email input required
     user = crud.get_record(Account, filter)
+    crud.patch_record(user, {"fcm": fcm})
     if not user or not pwd_context.verify(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
