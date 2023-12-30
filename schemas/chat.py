@@ -40,17 +40,11 @@ class RecordChat(BaseModel):
         orm_mode = True
 
 
-class SaveChat(RecordChat):
-    sender_id: int
+class Readroom(BaseModel):
+    post_id: int
 
     class Config:
         orm_mode = True
-
-
-class ReadChat(SaveChat):
-    chat_id: int
-    create_time: datetime
-    update_time: datetime
 
 
 class PatchChat(BaseModel):
