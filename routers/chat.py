@@ -65,6 +65,26 @@ def read_post(room_id: int, crud=Depends(get_crud)):
     return db_record
 
 
+@router.post(
+    "/my_opponets",
+    name="나의 채팅방 별 상대 이름 가져오기",
+    description="채팅방 UUID리스트를 보내면, 각 UUID에 해당하는 상대방의 닉내임의 리스트를 반환합나디.\n\n"
+                "자신의 account id를 보내는 것이 아닌 헤더에 로그인 토큰을 보내야 합니다.",
+    response_model=chat.OppoName
+)
+def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    res = []
+    for room in req.rooms:
+        temp: Room = crud.get_record(Room, {"room_id": room})
+        if current_user.account_id == temp.buyer_id:
+            seller = crud.get_record(Account, {Account, {"account_id": temp.seller_id}})
+            res.append(seller.username)
+        else:
+            buyer = crud.get_record(Account, {Account, {"account_id": temp.buyer_id}})
+            res.append(buyer.username)
+
+    return chat.OppoName(usernames=res)
+
 
 class ConnectionManager:
     def __init__(self):

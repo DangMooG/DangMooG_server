@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -51,3 +51,19 @@ class PatchChat(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class OppoRoom(BaseModel):
+    rooms: List[str]
+
+    class Config:
+        orm_mode = True
+
+
+class OppoName(BaseModel):
+    usernames: List[str]
+
+    class Config:
+        orm_mode = True
+
+
