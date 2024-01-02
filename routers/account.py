@@ -121,7 +121,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
         if is_exist.available == 3:
             crud.patch_record(is_exist, {"available": 0})
             return JSONResponse(jsonable_encoder([{
-                "status": 1,
+                "status": 0,
                 "message": "재가입 계정입니다."
             }]))
 
