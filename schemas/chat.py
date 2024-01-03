@@ -67,3 +67,8 @@ class OppoName(BaseModel):
         orm_mode = True
 
 
+class RoomIDs(BaseModel):
+    room_ids: List[str]
+
+    class Config:
+        orm_mode = True

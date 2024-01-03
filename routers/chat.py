@@ -46,7 +46,7 @@ async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_use
     response_model=List[chat.RecordChat],
 )
 def get_list(room_id: str, crud=Depends(get_crud)):
-    messages = crud.search_record(Post, {"room_id": room_id, "read": 0})
+    messages = crud.search_record(Message, {"room_id": room_id, "read": 0})
     for m in messages:
         crud.patch_record(m, {"read": 1})  # 읽음 처리
         m.read = 1
@@ -61,7 +61,7 @@ def get_list(room_id: str, crud=Depends(get_crud)):
     response_model=List[chat.RecordChat],
 )
 def get_list(room_id: str, crud=Depends(get_crud)):
-    messages = crud.search_record(Post, {"room_id": room_id, "read": 0})
+    messages = crud.search_record(Message, {"room_id": room_id, "read": 0})
     for m in messages:
         if m.read == 0:
             crud.patch_record(m, {"read": 1})  # 읽음 처리
@@ -75,7 +75,7 @@ def get_list(room_id: str, crud=Depends(get_crud)):
     description="입력된 room_id를 키로 해당하는 채팅방의 정보를 반환합니다",
     response_model=chat.Readroom,
 )
-def read_post(room_id: int, crud=Depends(get_crud)):
+def read_post(room_id: str, crud=Depends(get_crud)):
     filter = {"room_id": room_id}
     db_record = crud.get_record(Room, filter)
     if db_record is None:
@@ -86,7 +86,7 @@ def read_post(room_id: int, crud=Depends(get_crud)):
 @router.post(
     "/my_opponets",
     name="나의 채팅방 별 상대 이름 가져오기",
-    description="채팅방 UUID리스트를 보내면, 각 UUID에 해당하는 상대방의 닉내임의 리스트를 반환합나디.\n\n"
+    description="채팅방 UUID리스트를 보내면, 각 UUID에 해당하는 상대방의 닉내임의 리스트를 반환합니다.\n\n"
                 "자신의 account id를 보내는 것이 아닌 헤더에 로그인 토큰을 보내야 합니다.",
     response_model=chat.OppoName
 )
@@ -102,6 +102,26 @@ def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_c
             res.append(buyer.username)
 
     return chat.OppoName(usernames=res)
+
+
+@router.post(
+    "/my_rooms",
+    name="나의 채팅방 UUID 가져오기",
+    description="Header에 JWT 토큰을 담아서 보내면, 자신이 속해있는 채팅방의 UUID를 불러옵니다.\n\n"
+                "나간 처리된 채팅방은 불러 오지 않도록 설계되었습니다.",
+    response_model=chat.RoomIDs
+)
+def get_opponents_name(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    res = []
+    rooms_sell = crud.search_record(Room, {"seller_id": current_user.account_id})
+    rooms_buy = crud.search_record(Room, {"buyer_id": current_user.account_id})
+
+    for r1 in rooms_sell:
+        res.append(r1.room_id)
+    for r2 in rooms_buy:
+        res.append(r2.room_id)
+
+    return chat.RoomIDs(room_ids=res)
 
 
 class ConnectionManager:
