@@ -45,7 +45,7 @@ async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_use
                 "가져옴과 동시에 읽음처리가 진행됩니다.",
     response_model=List[chat.RecordChat],
 )
-def get_list(room_id: str, crud=Depends(get_crud)):
+def get_unread_list(room_id: str, crud=Depends(get_crud)):
     messages = crud.search_record(Message, {"room_id": room_id, "read": 0})
     for m in messages:
         crud.patch_record(m, {"read": 1})  # 읽음 처리
@@ -60,7 +60,7 @@ def get_list(room_id: str, crud=Depends(get_crud)):
                 "가져옴과 동시에 읽음처리가 진행됩니다.",
     response_model=List[chat.RecordChat],
 )
-def get_list(room_id: str, crud=Depends(get_crud)):
+def get_all_list(room_id: str, crud=Depends(get_crud)):
     messages = crud.search_record(Message, {"room_id": room_id, "read": 0})
     for m in messages:
         if m.read == 0:
@@ -75,16 +75,21 @@ def get_list(room_id: str, crud=Depends(get_crud)):
     description="입력된 room_id를 키로 해당하는 채팅방의 정보를 반환합니다",
     response_model=chat.Readroom,
 )
-def read_post(room_id: str, crud=Depends(get_crud)):
+def read_post(room_id: str, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     filter = {"room_id": room_id}
     db_record = crud.get_record(Room, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
-    return db_record
+    if db_record.buyer_id == current_user.account_id:
+        from_buyer = True
+    else:
+        from_buyer = False
+
+    return chat.Readroom(post_id=db_record.post_id, iam_buyer=from_buyer)
 
 
 @router.post(
-    "/my_opponets",
+    "/my_opponents",
     name="나의 채팅방 별 상대 이름 가져오기",
     description="채팅방 UUID리스트를 보내면, 각 UUID에 해당하는 상대방의 닉내임의 리스트를 반환합니다.\n\n"
                 "자신의 account id를 보내는 것이 아닌 헤더에 로그인 토큰을 보내야 합니다.",
@@ -105,13 +110,45 @@ def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_c
 
 
 @router.post(
+    "/my_room_status",
+    name="나의 채팅방 별 마지막 채팅과 않읽은 채팅의 개수 불러오기",
+    description="채팅방 UUID리스트를 보내면, 각 UUID에 해당하는 채팅방의 마지막 채팅과과 얼마나 채팅을 읽어야 하는 지 알려줍니다.\n\n"
+                "자신의 account id를 보내는 것이 아닌 헤더에 로그인 토큰을 보내야 합니다. \n\n"
+                "입력 - 채팅방 UUID 리스트, 출력 - lasts: 각 리스트 순번에 맞는 마지막 메시지 목록, counts: 각 리스트 순번에 맞는 읽어야 하는 메지시 수",
+    response_model=chat.RoomStatus
+)
+def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    count = []
+    lasts = []
+    for room in req.rooms:
+        lasts.append(crud.search_record(Message, {"room_id": room})[0])
+        unread: List[Message] = crud.search_record(Message, {"room_id": room, "read": 0})
+        info: Room = crud.get_record(Room, {"room_id": room})
+        if info.buyer_id == current_user.account_id:
+            from_buyer = True
+        else:
+            from_buyer = False
+
+        if unread[0].is_from_buyer:
+            if not from_buyer:
+                count += len(unread)
+        else:
+            if from_buyer:
+                count += len(unread)
+
+        count.append(count)
+
+    return chat.RoomStatus(lasts=lasts, counts=count)
+
+
+@router.post(
     "/my_rooms",
     name="나의 채팅방 UUID 가져오기",
     description="Header에 JWT 토큰을 담아서 보내면, 자신이 속해있는 채팅방의 UUID를 불러옵니다.\n\n"
                 "나간 처리된 채팅방은 불러 오지 않도록 설계되었습니다.",
     response_model=chat.RoomIDs
 )
-def get_opponents_name(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+def get_my_room_ids(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     res = []
     rooms_sell = crud.search_record(Room, {"seller_id": current_user.account_id})
     rooms_buy = crud.search_record(Room, {"buyer_id": current_user.account_id})
