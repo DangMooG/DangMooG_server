@@ -40,14 +40,32 @@ async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_use
 
 @router.get(
     "/read/{room_id}",
-    name="채팅방 메시지 읽기 처리",
-    description="Chat 테이블의 모든 Record를 가져옵니다",
+    name="채팅방에서 안읽은 메시지만 가져오기 + 읽음 처리",
+    description="Chat 테이블의 않읽은 Record를 가져옵니다\n\n"
+                "가져옴과 동시에 읽음처리가 진행됩니다.",
     response_model=List[chat.RecordChat],
 )
 def get_list(room_id: int, crud=Depends(get_crud)):
     messages = crud.search_record(Post, {"room_id": room_id, "read": 0})
     for m in messages:
         crud.patch_record(m, {"read": 1})  # 읽음 처리
+        m.read = 1
+    return messages
+
+
+@router.get(
+    "/read/{room_id}",
+    name="채팅방에서 안읽은 메시지만 가져오기 + 읽음 처리",
+    description="Chat 테이블의 않읽은 Record를 가져옵니다\n\n"
+                "가져옴과 동시에 읽음처리가 진행됩니다.",
+    response_model=List[chat.RecordChat],
+)
+def get_list(room_id: int, crud=Depends(get_crud)):
+    messages = crud.search_record(Post, {"room_id": room_id, "read": 0})
+    for m in messages:
+        if m.read == 0:
+            crud.patch_record(m, {"read": 1})  # 읽음 처리
+            m.read = 1
     return messages
 
 
