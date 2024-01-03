@@ -45,7 +45,7 @@ async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_use
                 "가져옴과 동시에 읽음처리가 진행됩니다.",
     response_model=List[chat.RecordChat],
 )
-def get_list(room_id: int, crud=Depends(get_crud)):
+def get_list(room_id: str, crud=Depends(get_crud)):
     messages = crud.search_record(Post, {"room_id": room_id, "read": 0})
     for m in messages:
         crud.patch_record(m, {"read": 1})  # 읽음 처리
@@ -60,7 +60,7 @@ def get_list(room_id: int, crud=Depends(get_crud)):
                 "가져옴과 동시에 읽음처리가 진행됩니다.",
     response_model=List[chat.RecordChat],
 )
-def get_list(room_id: int, crud=Depends(get_crud)):
+def get_list(room_id: str, crud=Depends(get_crud)):
     messages = crud.search_record(Post, {"room_id": room_id, "read": 0})
     for m in messages:
         if m.read == 0:
