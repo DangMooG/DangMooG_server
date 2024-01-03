@@ -34,7 +34,7 @@ class RecordChat(BaseModel):
     is_from_buyer: int
     content: str
     read: int
-    update_time: datetime
+    create_time: datetime
 
     class Config:
         orm_mode = True
@@ -70,7 +70,8 @@ class OppoName(BaseModel):
 
 
 class RoomStatus(BaseModel):
-    lasts: List[str]
+    last_messages: List[str]
+    update_times: List[datetime]
     counts: List[int]
 
     class Config:

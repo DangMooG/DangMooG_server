@@ -117,11 +117,15 @@ def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_c
                 "입력 - 채팅방 UUID 리스트, 출력 - lasts: 각 리스트 순번에 맞는 마지막 메시지 목록, counts: 각 리스트 순번에 맞는 읽어야 하는 메지시 수",
     response_model=chat.RoomStatus
 )
-def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
-    count = []
+def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     lasts = []
+    times = []
+    count = []
+
     for room in req.rooms:
-        lasts.append(crud.search_record(Message, {"room_id": room})[0])
+        last: Message = crud.search_record(Message, {"room_id": room})[0]
+        lasts.append(last.content)
+        times.append(last.create_time)
         unread: List[Message] = crud.search_record(Message, {"room_id": room, "read": 0})
         info: Room = crud.get_record(Room, {"room_id": room})
         if info.buyer_id == current_user.account_id:
@@ -138,7 +142,7 @@ def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_c
 
         count.append(count)
 
-    return chat.RoomStatus(lasts=lasts, counts=count)
+    return chat.RoomStatus(lasts=lasts, update_times=times, counts=count)
 
 
 @router.post(
