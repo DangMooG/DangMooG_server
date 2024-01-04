@@ -22,9 +22,12 @@ class PhotoComplete(PhotoUpload):
     account_id: int
 
 
-class ReadPhoto(PhotoComplete):
+class ReadPhoto(BaseModel):
     photo_id: int
     create_time: datetime
+
+    class Config:
+        orm_mode = True
 
 
 class SearchPhoto(BaseModel):
