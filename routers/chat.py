@@ -72,7 +72,8 @@ def get_all_list(room_id: str, crud=Depends(get_crud)):
 @router.post(
     "/room_info",
     name="채팅방 정보 가져오기",
-    description="입력된 room_id를 키로 해당하는 채팅방의 정보를 반환합니다",
+    description="입력된 room_id 리스트를 받아서 각각의 키로 해당하는 채팅방의 정보를 반환합니다 \n\n"
+                "정보는 해당 채팅방의 post_id의 리스트와 iam_buyer 내가 구매자인지 판단하는 bool 리스트 입니다.",
     response_model=chat.Readroom,
 )
 def read_post(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
