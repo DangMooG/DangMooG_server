@@ -27,7 +27,7 @@ class Chat(Base):
 
 class Room(Base):
     __tablename__ = "room"
-    room_id = Column(String, primary_key=True, default=str(uuid.uuid4()), unique=True, nullable=False)
+    room_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     post_id = Column(Integer, ForeignKey("post.post_id"), nullable=False)
     seller_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
     rooms_of_seller = relationship("Account", foreign_keys=[seller_id], backref="chat_rooms_seller")
