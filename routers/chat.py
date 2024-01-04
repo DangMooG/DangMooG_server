@@ -120,10 +120,11 @@ def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_c
 def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     lasts = []
     times = []
-    count = []
+    counts = []
 
     for room in req.rooms:
         last: Message = crud.search_record(Message, {"room_id": room})[0]
+        count = 0
         lasts.append(last.content)
         times.append(last.create_time)
         unread: List[Message] = crud.search_record(Message, {"room_id": room, "read": 0})
@@ -141,9 +142,9 @@ def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_curr
                 if from_buyer:
                     count += len(unread)
 
-        count.append(count)
+        counts.append(count)
 
-    return chat.RoomStatus(lasts=lasts, update_times=times, counts=count)
+    return chat.RoomStatus(lasts=lasts, update_times=times, counts=counts)
 
 
 @router.post(
