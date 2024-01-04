@@ -64,7 +64,7 @@ class OppoRoom(BaseModel):
 
 class OppoName(BaseModel):
     usernames: List[str]
-    profiles: List[str]
+    profiles: List[Optional[str]]
 
     class Config:
         orm_mode = True
