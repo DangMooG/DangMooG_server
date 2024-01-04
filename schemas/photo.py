@@ -23,7 +23,7 @@ class PhotoComplete(PhotoUpload):
 
 
 class ReadPhoto(BaseModel):
-    photo_id: int
+    url: str
     create_time: datetime
 
     class Config:
