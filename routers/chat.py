@@ -69,23 +69,26 @@ def get_all_list(room_id: str, crud=Depends(get_crud)):
     return messages
 
 
-@router.get(
-    "/{room_id}",
+@router.post(
+    "/room_info",
     name="채팅방 정보 가져오기",
     description="입력된 room_id를 키로 해당하는 채팅방의 정보를 반환합니다",
     response_model=chat.Readroom,
 )
-def read_post(room_id: str, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
-    filter = {"room_id": room_id}
-    db_record = crud.get_record(Room, filter)
-    if db_record is None:
-        raise HTTPException(status_code=404, detail="Record not found")
-    if db_record.buyer_id == current_user.account_id:
-        from_buyer = True
-    else:
-        from_buyer = False
+def read_post(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    ids = []
+    iams = []
+    for room in req.rooms:
+        temp: Room = crud.get_record(Room, {"room_id": room})
+        if temp is None:
+            raise HTTPException(status_code=404, detail="Record not found")
+        if temp.buyer_id == current_user.account_id:
+            iams.append(True)
+        else:
+            iams.append(False)
+        ids.append(temp.post_id)
 
-    return chat.Readroom(post_id=db_record.post_id, iam_buyer=from_buyer)
+    return chat.Readroom(post_id=ids, iam_buyer=iams)
 
 
 @router.post(

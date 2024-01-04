@@ -41,8 +41,8 @@ class RecordChat(BaseModel):
 
 
 class Readroom(BaseModel):
-    post_id: int
-    iam_buyer: bool
+    post_id: List[int]
+    iam_buyer: List[bool]
 
     class Config:
         orm_mode = True
