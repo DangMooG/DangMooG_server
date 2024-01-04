@@ -101,16 +101,25 @@ def read_post(req: chat.OppoRoom, current_user: Account = Depends(get_current_us
 )
 def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     res = []
+    profiles = []
     for room in req.rooms:
         temp: Room = crud.get_record(Room, {"room_id": room})
         if current_user.account_id == temp.buyer_id:
             seller = crud.get_record(Account, {"account_id": temp.seller_id})
             res.append(seller.username)
+            if seller.profile_url:
+                profiles.append(seller.profile_url)
+            else:
+                profiles.append(None)
         else:
             buyer = crud.get_record(Account, {"account_id": temp.buyer_id})
             res.append(buyer.username)
+            if buyer.profile_url:
+                profiles.append(buyer.profile_url)
+            else:
+                profiles.append(None)
 
-    return chat.OppoName(usernames=res)
+    return chat.OppoName(usernames=res, profiles=profiles)
 
 
 @router.post(
