@@ -133,12 +133,13 @@ def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_curr
         else:
             from_buyer = False
 
-        if unread[0].is_from_buyer:
-            if not from_buyer:
-                count += len(unread)
-        else:
-            if from_buyer:
-                count += len(unread)
+        if unread:
+            if unread[0].is_from_buyer:
+                if not from_buyer:
+                    count += len(unread)
+            else:
+                if from_buyer:
+                    count += len(unread)
 
         count.append(count)
 
