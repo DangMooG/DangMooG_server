@@ -100,10 +100,10 @@ def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_c
     for room in req.rooms:
         temp: Room = crud.get_record(Room, {"room_id": room})
         if current_user.account_id == temp.buyer_id:
-            seller = crud.get_record(Account, {Account, {"account_id": temp.seller_id}})
+            seller = crud.get_record(Account, {"account_id": temp.seller_id})
             res.append(seller.username)
         else:
-            buyer = crud.get_record(Account, {Account, {"account_id": temp.buyer_id}})
+            buyer = crud.get_record(Account, {"account_id": temp.buyer_id})
             res.append(buyer.username)
 
     return chat.OppoName(usernames=res)
