@@ -79,17 +79,26 @@ def get_all_list(room_id: str, crud=Depends(get_crud)):
 def read_post(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     ids = []
     iams = []
+    repr_photos = []
     for room in req.rooms:
         temp: Room = crud.get_record(Room, {"room_id": room})
         if temp is None:
-            raise HTTPException(status_code=404, detail="Record not found")
+            raise HTTPException(status_code=404, detail="Record not found room")
         if temp.buyer_id == current_user.account_id:
             iams.append(True)
         else:
             iams.append(False)
         ids.append(temp.post_id)
 
-    return chat.Readroom(post_id=ids, iam_buyer=iams)
+        temp_post: Post = crud.get_record(Post, {"post_id": temp.post_id})
+        if temp_post is None:
+            raise HTTPException(status_code=404, detail="Record not found on post")
+        if temp_post.representative_photo_id:
+            repr_photos.append(temp_post.representative_photo_id)
+        else:
+            repr_photos.append(None)
+
+    return chat.Readroom(post_id=ids, iam_buyer=iams, repr_photo_id=repr_photos)
 
 
 @router.post(
