@@ -144,7 +144,7 @@ def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_curr
 
         counts.append(count)
 
-    return chat.RoomStatus(lasts=lasts, update_times=times, counts=counts)
+    return chat.RoomStatus(last_messages=lasts, update_times=times, counts=counts)
 
 
 @router.post(
