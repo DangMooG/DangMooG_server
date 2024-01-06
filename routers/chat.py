@@ -145,12 +145,18 @@ def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_curr
     counts = []
 
     for room in req.rooms:
-        last: Message = crud.search_record(Message, {"room_id": room})[0]
         count = 0
-        lasts.append(last.content)
-        times.append(last.create_time)
+        last: Message = crud.search_record(Message, {"room_id": room})
+        if last:
+            lasts.append(last.content)
+            times.append(last.create_time)
+        else:
+            lasts.append(None)
+            times.append(None)
+
         unread: List[Message] = crud.search_record(Message, {"room_id": room, "read": 0})
         info: Room = crud.get_record(Room, {"room_id": room})
+
         if info.buyer_id == current_user.account_id:
             from_buyer = True
         else:
