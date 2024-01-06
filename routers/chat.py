@@ -148,8 +148,8 @@ def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_curr
         count = 0
         last: Message = crud.search_record(Message, {"room_id": room})
         if last:
-            lasts.append(last.content)
-            times.append(last.create_time)
+            lasts.append(last[0].content)
+            times.append(last[0].create_time)
         else:
             lasts.append(None)
             times.append(None)
