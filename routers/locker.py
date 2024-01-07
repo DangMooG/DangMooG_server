@@ -99,7 +99,22 @@ async def post_locker_auth(req: locker.LockerAuth, file: UploadFile, crud=Depend
     user_post: Post = crud.get_record(Post, {"post_id": req.post_id})
     if user_post.account_id != current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
+    if  datetime.now() > user_post.create_time + timedelta(minutes=30):
+        raise HTTPException(status_code=408, detail="Authentication time has expired")
     url = await upload_file(file, "auth")
 
-    return crud.create_record(LockerAuth, locker.AuthUpload(post_id=req.post_id, locker_id=req.locker_id, photo_url=url))
+    return crud.create_record(LockerAuth, locker.AuthUpload(post_id=req.post_id, locker_id=req.locker_id, password=req.password, photo_url=url))
+
+
+@router.get(
+    "/locker_auth/{auth_id}",
+    name="거래물품 배치 내역 조회",
+    description="거래풀품 구매자 혹은 관리자가 사물함 인증 내역을 확인하기 위한 api입니다.",
+    response_model=locker.AuthRead
+)
+async def get_locker_auth(auth_id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    auth = crud.get_record(LockerAuth, {"locker_auth_id": auth_id})
+    if auth is None:
+        raise HTTPException(status_code=404, detail="Record not found")
+    return auth
 

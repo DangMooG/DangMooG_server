@@ -26,6 +26,7 @@ class ReadLocker(UseLocker):
 class LockerAuth(BaseModel):
     post_id: int
     locker_id: int
+    password: str
 
     class Config:
         orm_mode = True
