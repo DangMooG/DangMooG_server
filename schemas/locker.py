@@ -18,3 +18,33 @@ class ReadLocker(UseLocker):
     name: str
     create_time: datetime
     update_time: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class LockerAuth(BaseModel):
+    post_id: int
+    locker_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class AuthUpload(LockerAuth):
+    photo_url: str
+
+    class Config:
+        orm_mode = True
+
+
+class AuthRead(LockerAuth):
+    locker_auth_id: int
+    photo_url: str
+    is_over: int
+    create_time: datetime
+    update_time: datetime
+
+    class Config:
+        orm_mode = True
+

@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
 
 from core.utils import get_crud
-from models.locker import Locker
+from models.locker import Locker, LockerAuth
 from schemas import locker
 from routers.account import get_current_user
+from routers.photo import upload_file
 from models.account import Account
 from models.post import Post
 
@@ -55,7 +56,6 @@ def get_list(crud=Depends(get_crud)):
     return crud.get_list(Locker)
 
 
-
 @router.get(
     "/{id}",
     name="Locker record 가져오기",
@@ -68,6 +68,7 @@ def read_post(id: int, crud=Depends(get_crud)):
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
     return db_record
+
 
 @router.patch(
     "/{id}",
@@ -85,3 +86,20 @@ async def update_post_sub(req: dict, id: int, crud=Depends(get_crud), current_us
     if db_record.status == 0 and db_record.account_id != current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
     return crud.patch_record(db_record, {**req, "account_id": current_user.account_id})
+
+
+@router.post(
+    "/locker_auth",
+    name="사물함에 거래풀품 배치 인증",
+    description="사물함을 사용하는 게시물에 대한 인증 정보를 입력하는 API입니다.\n\n"
+                "필요한 정보는 post_id, locker_id의 정보와 사진 업로드가 필요합니다.",
+    response_model=locker.AuthRead
+)
+async def post_locker_auth(req: locker.LockerAuth, file: UploadFile, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    user_post: Post = crud.get_record(Post, {"post_id": req.post_id})
+    if user_post.account_id != current_user.account_id:
+        raise HTTPException(status_code=401, detail="Unauthorized request")
+    url = await upload_file(file, "auth")
+
+    return crud.create_record(LockerAuth, locker.AuthUpload(post_id=req.post_id, locker_id=req.locker_id, photo_url=url))
+
