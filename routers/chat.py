@@ -61,7 +61,7 @@ def get_unread_list(room_id: str, crud=Depends(get_crud)):
     response_model=List[chat.RecordChat],
 )
 def get_all_list(room_id: str, crud=Depends(get_crud)):
-    messages = crud.search_record(Message, {"room_id": room_id, "read": 0})
+    messages = crud.search_record(Message, {"room_id": room_id})
     for m in messages:
         if m.read == 0:
             crud.patch_record(m, {"read": 1})  # 읽음 처리
