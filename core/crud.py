@@ -71,14 +71,15 @@ class CRUD:
         return pages
 
     def app_paging_record(self, table: BaseModel, size: int, checkpoint: int = 0):
-        total_row = self.session.query(table).count()
+        query = self.session.query(table).filter(table.use_locker != 1)
+        total_row = query.count()
         if checkpoint is 0:
             start = checkpoint
-            items = self.session.query(table).order_by(table.create_time.desc()).offset(start).limit(size).all()
+            items = query.order_by(table.create_time.desc()).offset(start).limit(size).all()
             return {"items": items, "next_checkpoint": total_row - size}
         else:
             start = total_row - checkpoint
-            items = self.session.query(table).order_by(table.create_time.desc()).offset(start).limit(size).all()
+            items = query.order_by(table.create_time.desc()).offset(start).limit(size).all()
             next_checkpoint = checkpoint - size
             if next_checkpoint < 1:
                 next_checkpoint = -1
