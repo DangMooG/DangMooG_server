@@ -99,10 +99,11 @@ async def post_locker_auth(req: locker.LockerAuth, file: UploadFile, crud=Depend
     user_post: Post = crud.get_record(Post, {"post_id": req.post_id})
     if user_post.account_id != current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
-    if  datetime.now() > user_post.create_time + timedelta(minutes=30):
+    if datetime.now() > user_post.create_time + timedelta(minutes=30):
         raise HTTPException(status_code=408, detail="Authentication time has expired")
     url = await upload_file(file, "auth")
 
+    crud.patch_record(user_post, {"status": 2})
     return crud.create_record(LockerAuth, locker.AuthUpload(post_id=req.post_id, locker_id=req.locker_id, password=req.password, photo_url=url))
 
 

@@ -24,7 +24,7 @@ class Chat(Base):
     )
     mysql_engine = "InnoDB"
 
-gi
+
 class Room(Base):
     __tablename__ = "room"
     room_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)

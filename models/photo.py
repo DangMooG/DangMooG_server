@@ -4,7 +4,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.types import TIMESTAMP
 
 from core.db import Base
-from models.chat import Chat
 
 
 class Photo(Base):
