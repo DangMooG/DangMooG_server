@@ -50,7 +50,6 @@ class PatchPost(BaseModel):
     category_id: Optional[int]
     status: Optional[int]
     use_locker: Optional[int]
-    account_id: int
     representative_photo_id: Optional[int]
     liked: Optional[int]
 

@@ -256,16 +256,25 @@ async def page_post(req: RequestPage, crud=Depends(get_crud)):
         },
     }
 )
-async def app_page_listing(size: int, checkpoint: Optional[int] = None, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def app_page_listing(size: int, checkpoint: Optional[int] = None, crud=Depends(get_crud)):
     if size > 100:
         raise HTTPException(status_code=400, detail="Size should be below 100")
     if size <= 0:
         raise HTTPException(status_code=400, detail="Size should be positive")
     if checkpoint:
-        return crud.app_paging_record(Post, size, checkpoint, current_user=current_user.account_id)
+        return crud.app_paging_record(Post, size, checkpoint)
     else:
-        return crud.app_paging_record(table=Post, size=size, account_id=current_user.account_id)
+        return crud.app_paging_record(Post, size)
 
+
+@router.post(
+    "/not_yet_auth",
+    name="Post 테이블에서 사용자 본인이 아직 인증하지 못한 게시물들을 불러오는 API",
+    description="헤더에 로그인 토큰만 넣어서 보내주면 아직 인증하지 못한 게시물들의 리스트를 반환합니다.",
+    response_model=List[post.PatchPost]
+)
+async def not_yet_auth_mypost(crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    return crud.search_record(Post, {"account_id": current_user.account_id, "use_locker": 1})
 
 
 @router.post(
@@ -289,6 +298,7 @@ async def search_post(
             "representative_photo_id": 1,
             "status": 0,
             "account_id": 1,
+            "use_locker": 0,
             "username": "이재선",
             "liked": 3
         }]), crud=Depends(get_crud)):
