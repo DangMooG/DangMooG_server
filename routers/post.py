@@ -256,15 +256,15 @@ async def page_post(req: RequestPage, crud=Depends(get_crud)):
         },
     }
 )
-async def app_page_listing(size: int, checkpoint: Optional[int] = None, crud=Depends(get_crud)):
+async def app_page_listing(size: int, checkpoint: Optional[int] = None, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     if size > 100:
         raise HTTPException(status_code=400, detail="Size should be below 100")
     if size <= 0:
         raise HTTPException(status_code=400, detail="Size should be positive")
     if checkpoint:
-        return crud.app_paging_record(Post, size, checkpoint)
+        return crud.app_paging_record(Post, size, checkpoint, current_user=current_user.account_id)
     else:
-        return crud.app_paging_record(Post, size)
+        return crud.app_paging_record(table=Post, size=size, account_id=current_user.account_id)
 
 
 

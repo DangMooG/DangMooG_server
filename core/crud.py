@@ -1,7 +1,7 @@
 import math
 
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from typing import Union
@@ -70,8 +70,8 @@ class CRUD:
         pages = {"items": items, "total_pages": total_page, "page": req.page, "size": req.size, "total_row": total_row}
         return pages
 
-    def app_paging_record(self, table: BaseModel, size: int, checkpoint: int = 0):
-        query = self.session.query(table).filter(table.use_locker != 1)
+    def app_paging_record(self, table: BaseModel, size: int, checkpoint: int = 0, account_id: int = 0):
+        query = self.session.query(table).filter(or_(table.use_locker != 1, table.account_id == account_id))
         total_row = query.count()
         if checkpoint is 0:
             start = checkpoint
