@@ -27,6 +27,7 @@ class LockerAuth(Base):
     locker_auth_id = Column(Integer, primary_key=True, autoincrement=True)
     post_id = Column(Integer, nullable=False)
     locker_id = Column(Integer, nullable=False)
+    password = Column(VARCHAR(20), default="0000")
     photo_url = Column(VARCHAR(2000), nullable=False, comment='could be uploaded url location')
     is_over = Column(TINYINT, default=0)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
