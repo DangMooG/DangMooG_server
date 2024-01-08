@@ -95,7 +95,7 @@ async def update_post_sub(req: dict, id: int, crud=Depends(get_crud), current_us
                 "필요한 정보는 post_id, locker_id의 정보와 사진 업로드가 필요합니다.",
     response_model=locker.AuthRead
 )
-async def post_locker_auth(req: locker.LockerAuth, file: UploadFile, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def post_locker_auth(file: UploadFile, req: locker.LockerAuth = Depends(), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     user_post: Post = crud.get_record(Post, {"post_id": req.post_id})
     if user_post.account_id != current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
