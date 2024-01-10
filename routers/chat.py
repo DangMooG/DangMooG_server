@@ -96,7 +96,7 @@ def read_post(req: chat.OppoRoom, current_user: Account = Depends(get_current_us
         if temp_post.representative_photo_id:
             repr_photos.append(temp_post.representative_photo_id)
         else:
-            repr_photos.append(None)
+            repr_photos.append(0)
 
     return chat.Readroom(post_id=ids, iam_buyer=iams, repr_photo_id=repr_photos)
 
