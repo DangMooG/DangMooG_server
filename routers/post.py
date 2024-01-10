@@ -459,7 +459,7 @@ async def update_post_sub(id: int, req: dict = Body(..., examples=[{
     db_record = crud.get_record(Post, filter)
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
-    if db_record.account_id == current_user.account_id:
+    if db_record.account_id != current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
 
     return crud.patch_record(db_record, req)
