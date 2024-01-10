@@ -112,7 +112,7 @@ async def post_locker_auth(file: UploadFile, req: locker.LockerAuth = Depends(),
     "/locker_auth/{post_id}",
     name="사물함 정보, 비밀번호 전송",
     description="post_id를 입력하면 거래풀품 구매자 에게 locker_id, locker의 name, locker의 비밀번호가 전송됩니다.",
-    response_model=locker.AuthRead
+    response_model=locker.LockerPass
 )
 async def get_locker_auth(post_id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     user_post: Post = crud.get_record(Post, {"post_id": post_id})
