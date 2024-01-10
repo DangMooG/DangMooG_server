@@ -49,3 +49,11 @@ class AuthRead(LockerAuth):
     class Config:
         orm_mode = True
 
+
+class LockerPass(BaseModel):
+    locker_id: int
+    name: str
+    password: str
+
+    class Config:
+        orm_mode = True
