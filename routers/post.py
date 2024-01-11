@@ -531,8 +531,5 @@ async def like_back(id: int, crud=Depends(get_crud), current_user: Account = Dep
 )
 async def like_list(crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"account_id": current_user.account_id}
-    db_record = crud.search_record(Liked, filter)
-    if len(db_record) < 1:
-        raise HTTPException(status_code=404, detail="Record not found")
-    return db_record
+    return crud.search_record(Liked, filter)
 
