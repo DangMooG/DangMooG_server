@@ -39,6 +39,7 @@ class ReadPost(PhotoPost):
     username: str
     buyer: Optional[int]
     liked: int
+    room_count: Optional[int]
     create_time: datetime
     update_time: datetime
 
@@ -53,6 +54,7 @@ class PatchPost(BaseModel):
     use_locker: Optional[int]
     representative_photo_id: Optional[int]
     liked: Optional[int]
+    room_count: Optional[int]
 
     class Config:
         orm_mode = True
@@ -83,6 +85,7 @@ class Item(BaseModel):
     status: int
     use_locker: int
     username: str
+    room_count: int
     create_time: datetime
 
     class Config:

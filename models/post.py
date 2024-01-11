@@ -23,6 +23,7 @@ class Post(Base):
     account_for_id = relationship("Account", foreign_keys=[account_id], backref="posts")  # 해당 이용자의 다른 게시글 참고 가능
     account_for_name = relationship("Account", foreign_keys=[username], backref="posts_from_name")  # 해당 이용자의 다른 게시글 참고 가능
     liked = Column(Integer, default=0)
+    room_count = Column(Integer, default=0)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
