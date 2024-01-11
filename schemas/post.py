@@ -37,6 +37,7 @@ class ReadPost(PhotoPost):
     post_id: int
     representative_photo_id: Optional[int]
     username: str
+    buyer: int
     liked: int
     create_time: datetime
     update_time: datetime

@@ -15,6 +15,7 @@ class Post(Base):
     description = Column(VARCHAR(2000), nullable=False)
     representative_photo_id = Column(Integer)
     category_id = Column(Integer, ForeignKey("category.category_id"), nullable=False)
+    buyer = Column(Integer, default=None)
     status = Column(TINYINT, nullable=False)
     use_locker = Column(TINYINT, default=0)
     account_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
