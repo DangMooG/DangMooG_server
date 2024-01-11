@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Body
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
@@ -274,6 +276,10 @@ async def app_page_listing(size: int, checkpoint: Optional[int] = None, crud=Dep
     response_model=List[post.PatchPost]
 )
 async def not_yet_auth_mypost(crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    yets = crud.search_record(Post, {"account_id": current_user.account_id, "use_locker": 1})
+    for yet in yets:
+        if datetime.now() > yet.create_time + timedelta(minutes=15):
+            crud.delete_record(Post, {"post_id": yet.post_id})
     return crud.search_record(Post, {"account_id": current_user.account_id, "use_locker": 1})
 
 
