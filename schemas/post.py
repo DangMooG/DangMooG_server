@@ -55,6 +55,7 @@ class PatchPost(BaseModel):
     representative_photo_id: Optional[int]
     liked: Optional[int]
     room_count: Optional[int]
+    create_time: datetime
 
     class Config:
         orm_mode = True
