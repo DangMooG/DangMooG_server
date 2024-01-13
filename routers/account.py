@@ -103,12 +103,21 @@ Account table CRUD
              )
 async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
     if req.email == "dangmoog123@gist.ac.kr":
-        db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(environ["SPECIAL_PWD"]))
-        crud.create_record(Account, db_account)
-        return JSONResponse(jsonable_encoder([{
-            "status": 0,
-            "message": "테스트 계정을 생성하였습니다."
-        }]))
+        mail_id = req.email.split("@")[0]
+        filter = {"email": mail_id}
+        is_exist = crud.get_record(Account, filter)
+        if is_exist:
+            return JSONResponse(jsonable_encoder([{
+                "status": 1,
+                "message": "이미 존재하는 계정입니다."
+            }]))
+        else:
+            db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(environ["SPECIAL_PWD"]))
+            crud.create_record(Account, db_account)
+            return JSONResponse(jsonable_encoder([{
+                "status": 0,
+                "message": "테스트 계정을 생성하였습니다."
+            }]))
     if "@gist.ac.kr" not in req.email and "@gm.gist.ac.kr" not in req.email:
         raise HTTPException(status_code=401, detail="Not valid request, please use gist mail")
     mail_id = req.email.split("@")[0]
@@ -195,7 +204,7 @@ async def active_account(fcm: Annotated[str, Form()], form_data: OAuth2PasswordR
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if datetime.now() > user.update_time + timedelta(minutes=10) and form_data.username != "dangmoog123@test.com":
+    if datetime.now() > user.update_time + timedelta(minutes=10) and form_data.username != "dangmoog123":
         raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Authentication number has expired")
 
     # make access token
