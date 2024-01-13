@@ -112,6 +112,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
                 "message": "이미 존재하는 계정입니다."
             }]))
         else:
+            req.email = mail_id
             db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(environ["SPECIAL_PWD"]))
             crud.create_record(Account, db_account)
             return JSONResponse(jsonable_encoder([{
