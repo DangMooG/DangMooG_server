@@ -102,7 +102,7 @@ Account table CRUD
              }
              )
 async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
-    if req.email == "dangmoog123@test.com":
+    if req.email == "dangmoog123@gist.ac.kr":
         db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(environ["SPECIAL_PWD"]))
         crud.create_record(Account, db_account)
         return JSONResponse(jsonable_encoder([{
