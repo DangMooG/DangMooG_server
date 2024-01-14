@@ -262,7 +262,7 @@ def get_current_user(token: str = Depends(oauth2_scheme),
                 "-H 'Authorization: Bearer {token hash} \n\n"
                 "위 같이 헤더에 Bearer방식으로 토큰을 넣어서 post하면 됩니다.",
     response_model=account.ReadAccount,
-    response_model_exclude={"create_time", "update_time", "available", "jail_until"},
+    response_model_exclude={"create_time", "update_time", "available", "jail_until", "gm"},
     responses={
         200: {
             "description": "정상적으로 인증이 완료되었을 때.\n\n"
@@ -275,7 +275,7 @@ def get_current_user(token: str = Depends(oauth2_scheme),
                     "example": {
                         "account_id": 1,
                         "username": "jaesun",
-                        "email": "rejaealsun",
+                        "email": "rejaealsun@gm.gist.ac.kr",
                         "profile_url": "https:// object_storage_url"
                     }
                 }
@@ -294,7 +294,12 @@ def get_current_user(token: str = Depends(oauth2_scheme),
     }
 )
 async def check_token(current_user: Account = Depends(get_current_user)):
-    return current_user.to_dict()
+    result = current_user.to_dict()
+    if result["gm"]:
+        result["email"] = result["email"]+"@gm.gist.ac.kr"
+    else:
+        result["email"] = result["email"] + "@gist.ac.kr"
+    return result
 
 
 @router.post(
