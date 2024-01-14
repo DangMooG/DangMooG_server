@@ -13,6 +13,7 @@ class AccountCreate(BaseModel):
 
 class AccountSet(AccountCreate):
     password: str
+    gm: int
 
     class Config:
         orm_mode = True
@@ -29,6 +30,7 @@ class ReadAccount(BaseModel):
     account_id: int
     username: Optional[str]
     email: str
+    gm: int
     profile_url: Optional[str]
     available: Optional[int]
     jail_until: Optional[datetime]

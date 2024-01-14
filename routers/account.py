@@ -113,7 +113,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
             }]))
         else:
             req.email = mail_id
-            db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(environ["SPECIAL_PWD"]))
+            db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(environ["SPECIAL_PWD"]), gm=0)
             crud.create_record(Account, db_account)
             return JSONResponse(jsonable_encoder([{
                 "status": 0,
@@ -121,7 +121,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
             }]))
     if "@gist.ac.kr" not in req.email and "@gm.gist.ac.kr" not in req.email:
         raise HTTPException(status_code=401, detail="Not valid request, please use gist mail")
-    mail_id = req.email.split("@")[0]
+    mail_id, domain = req.email.split("@")
     filter = {"email": mail_id}
     is_exist = crud.get_record(Account, filter)
     verification_number = send_mail(req.email)
@@ -141,7 +141,11 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
         }]))
     else:
         req.email = mail_id
-        db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(verification_number))
+        db_account = account.AccountSet(
+            **req.dict(),
+            password=pwd_context.hash(verification_number),
+            gm=1 if domain.startswith("gm") else 0
+        )
         crud.create_record(Account, db_account)
         return JSONResponse(jsonable_encoder([{
             "status": 0,

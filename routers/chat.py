@@ -194,39 +194,3 @@ def get_my_room_ids(current_user: Account = Depends(get_current_user), crud=Depe
 
     return chat.RoomIDs(room_ids=res)
 
-
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: Dict[str, Set[WebSocket]] = {}
-
-    async def connect(self, websocket: WebSocket, room: str):
-        await websocket.accept()
-        if room in self.active_connections:
-            self.active_connections[room].add(websocket)
-        else:
-            self.active_connections[room] = {websocket}
-
-    def disconnect(self, websocket: WebSocket, room: str):
-        self.active_connections[room].remove(websocket)
-
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
-
-    async def broadcast(self, message: str, room: str):
-        for connection in self.active_connections[room]:
-            await connection.send_text(message)
-
-
-manager = ConnectionManager()
-
-
-@router.websocket("/ws/{room_name}")
-async def websocket_endpoint(websocket: WebSocket, room_name: str):
-    await manager.connect(websocket, room_name)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            await manager.broadcast(data, room_name)
-    except WebSocketDisconnect:
-        manager.disconnect(websocket, room_name)
-        await manager.broadcast(f"Client left the chat room: {room_name}", room_name)

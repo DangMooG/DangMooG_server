@@ -12,6 +12,7 @@ class Account(Base):
     username = Column(VARCHAR(30), unique=True, nullable=False)
     password = Column(CHAR(60), nullable=False)
     email = Column(VARCHAR(255), unique=True, nullable=False)
+    gm = Column(TINYINT, default=1)
     profile_url = Column(VARCHAR(2000))
     available = Column(TINYINT, nullable=False)
     jail_until = Column(TIMESTAMP)
@@ -29,6 +30,7 @@ class Account(Base):
             "username": self.username,
             "password": self.password,
             "email": self.email,
+            "gm": self.gm,
             "profile_url": self.profile_url,
             "available": self.available,
             "jail_until": self.jail_until,
