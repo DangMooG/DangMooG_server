@@ -198,7 +198,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/meta/account/verification")
                  }
              }
 )
-async def active_account(fcm: Annotated[str, Form()], form_data: OAuth2PasswordRequestForm = Depends(),
+async def active_account(fcm: Annotated[str, Form()] = "temporary", form_data: OAuth2PasswordRequestForm = Depends(),
                          crud=Depends(get_crud)):
     filter = {"email": form_data.username}  # email input required
     user = crud.get_record(Account, filter)
