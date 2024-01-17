@@ -129,7 +129,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
         update = account.AccountReceate(password=pwd_context.hash(verification_number))
         crud.patch_record(is_exist, update)
         if is_exist.available == 3:
-            crud.patch_record(is_exist, {"available": 0})
+            crud.patch_record(is_exist, {"available": 1})
             return JSONResponse(jsonable_encoder([{
                 "status": 0,
                 "message": "재가입 계정입니다."
@@ -391,11 +391,11 @@ async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), curre
     filter = {"username": req.username}
     if crud.get_record(Account, filter):
         raise HTTPException(status_code=409, detail="Already reserved username")
-    if current_user.available is None:
+    if current_user.available == 1:
         crud.patch_record(db_record, {"available": 0})
         return crud.patch_record(db_record, req)
     limit_day = db_record.update_time + timedelta(days=30)
-    if db_record.username and datetime.now() < limit_day:
+    if current_user.available != 1 and datetime.now() < limit_day:
         raise HTTPException(status_code=401, detail=f"{limit_day} 이후에 닉네임을 변결할 수 있습니다.")
     return crud.patch_record(db_record, req)
 
