@@ -33,7 +33,7 @@ async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_use
     ifroom = crud.search_record(Room, {"post_id": req.post_id, "buyer_id": current_user.account_id})
     if ifroom:
         return {"room_id": ifroom[0].room_id}
-    seller = crud.search_record(Account, {"username": crud.get_record(Post, {"post_id": req.post_id}).username})
+    seller = crud.search_record(Account, {"account_id": crud.get_record(Post, {"post_id": req.post_id}).account_id})
     chat_room = crud.create_record(Room, chat.RoomCreate(**req.dict(), seller_id=seller[0].account_id, buyer_id=current_user.account_id, status=0))
     return {"room_id": chat_room.room_id}
 

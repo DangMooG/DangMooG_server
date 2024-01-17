@@ -9,6 +9,7 @@ from core.utils import get_crud
 from models.photo import Photo
 from models.post import Post
 from models.liked import Liked
+from models.chat import Room
 from schemas import post, photo
 from routers.account import get_current_user
 from routers.photo import upload_file
@@ -481,6 +482,9 @@ async def delete_post(id: int, crud=Depends(get_crud), current_user: Account = D
     db_record = crud.get_record(Post, filter)
     if db_record.account_id != current_user.account_id or db_record is None:
         raise HTTPException(status_code=401, detail="Unauthorized request")
+    got_room = crud.get_record(Room, {"post_id": id})
+    if got_room:
+        raise HTTPException(status_code=401, detail="거래 채팅이 진행중인 게시물입니다.")
     db_api = crud.delete_record(Post, filter)
     if db_api != 1:
         raise HTTPException(status_code=404, detail="Record not found")
