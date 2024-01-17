@@ -391,8 +391,8 @@ async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), curre
     filter = {"username": req.username}
     if crud.get_record(Account, filter):
         raise HTTPException(status_code=409, detail="Already reserved username")
-    if current_user.available == 0:
-        crud.patch_record(db_record, {"available": None})
+    if current_user.available is None:
+        crud.patch_record(db_record, {"available": 0})
         return crud.patch_record(db_record, req)
     limit_day = db_record.update_time + timedelta(days=30)
     if db_record.username and datetime.now() < limit_day:
