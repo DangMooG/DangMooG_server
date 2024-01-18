@@ -73,7 +73,7 @@ class CRUD:
     def app_paging_record(self, table: BaseModel, size: int, checkpoint: int = 0):
         query = self.session.query(table).filter(table.use_locker != 1)
         total_row = query.count()
-        if checkpoint is 0:
+        if checkpoint == 0:
             start = checkpoint
             items = query.order_by(table.create_time.desc()).offset(start).limit(size).all()
             return {"items": items, "next_checkpoint": total_row - size}
