@@ -10,6 +10,7 @@ from models.photo import Photo
 from models.post import Post
 from models.liked import Liked
 from models.chat import Room
+from models.locker import Locker
 from schemas import post, photo
 from routers.account import get_current_user
 from routers.photo import upload_file
@@ -124,6 +125,11 @@ async def create_with_photo(req: post.BasePost = Depends(), files: Optional[List
             crud.create_record(Photo, temp_photo)
     request = {"representative_photo_id": rep_photo_id}
     crud.patch_record(temp_post, request)
+    if req.locker_id:
+        to_reserve = crud.get_record(Locker, {"locker_id": req.locker_id})
+        if not to_reserve:
+            raise HTTPException(status_code=404, detail="no locker available")
+        crud.patch_record(to_reserve, {"post_id": search_id})
     return crud.get_record(Post, {"post_id": search_id})
 
 

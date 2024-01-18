@@ -15,6 +15,7 @@ class BasePost(BaseModel):
     description: str = Field(..., example="정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.")
     category_id: int = Field(..., example=3)
     use_locker: int = Field(..., example=0)
+    locker_id: Optional[int] = Field(..., example=5)
 
     class Config:
         orm_mode = True

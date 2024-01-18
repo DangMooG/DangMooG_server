@@ -18,6 +18,7 @@ class Post(Base):
     buyer = Column(Integer, default=None)
     status = Column(TINYINT, nullable=False)
     use_locker = Column(TINYINT, default=0)
+    locker_id = Column(Integer, nullable=True, default=None)
     account_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
     username = Column(VARCHAR(100), ForeignKey("account.username"), nullable=False)
     account_for_id = relationship("Account", foreign_keys=[account_id], backref="posts")  # 해당 이용자의 다른 게시글 참고 가능
