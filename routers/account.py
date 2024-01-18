@@ -34,7 +34,7 @@ router = APIRouter(
 )
 
 
-def send_mail(to_who):
+async def send_mail(to_who):
     token = ''.join(random.choices('0123456789', k=6))
     sender = "dotorit2023@gmail.com"
     with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
