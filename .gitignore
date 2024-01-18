@@ -5,6 +5,9 @@ __pycache__
 migrations
 alembic.ini
 
+# python file
+filetest.py
+
 # Desktop Services Store
 *.DS_Store
 
