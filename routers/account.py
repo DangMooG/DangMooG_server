@@ -54,7 +54,7 @@ async def send_mail(to_who):
     return token
 
 
-def rate_limit(email):
+async def rate_limit(email):
     global last_request_time
     current_time = datetime.now()
     if email in last_request_time:
@@ -116,7 +116,7 @@ last_request_time = {}
 async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
     if req.email == "dangmoog123@gist.ac.kr":
         mail_id = req.email.split("@")[0]
-        rate_limit(mail_id)
+        await rate_limit(mail_id)
         filter = {"email": mail_id}
         is_exist = crud.get_record(Account, filter)
         if is_exist:
@@ -135,7 +135,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
     if "@gist.ac.kr" not in req.email and "@gm.gist.ac.kr" not in req.email:
         raise HTTPException(status_code=401, detail="Not valid request, please use gist mail")
     mail_id, domain = req.email.split("@")
-    rate_limit(mail_id)
+    await rate_limit(mail_id)
     filter = {"email": mail_id}
     is_exist = crud.get_record(Account, filter)
     verification_number = await send_mail(req.email)
