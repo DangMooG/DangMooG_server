@@ -124,7 +124,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
     mail_id, domain = req.email.split("@")
     filter = {"email": mail_id}
     is_exist = crud.get_record(Account, filter)
-    verification_number = send_mail(req.email)
+    verification_number = await send_mail(req.email)
     if is_exist:
         update = account.AccountReceate(password=pwd_context.hash(verification_number))
         crud.patch_record(is_exist, update)
