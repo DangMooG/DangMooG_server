@@ -27,7 +27,7 @@ class Chat(Base):
 
 class Room(Base):
     __tablename__ = "room"
-    room_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    room_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     post_id = Column(Integer, ForeignKey("post.post_id"), nullable=False)
     seller_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
     rooms_of_seller = relationship("Account", foreign_keys=[seller_id], backref="chat_rooms_seller")
@@ -45,9 +45,9 @@ class Room(Base):
 class Message(Base):
     __tablename__ = "message"
     message_id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
-    room_id = Column(String, ForeignKey("room.room_id"), nullable=False)
+    room_id = Column(String(36), ForeignKey("room.room_id"), nullable=False)
     is_from_buyer = Column(TINYINT, nullable=False)
-    content = Column(String, nullable=False)
+    content = Column(TEXT, nullable=False)
     read = Column(TINYINT, default=0)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     mysql_engine = "InnoDB"

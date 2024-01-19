@@ -14,3 +14,6 @@ filetest.py
 # SQL files
 *.sql
 .env
+mariadb
+.vscode
+docker-compose.yml
