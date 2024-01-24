@@ -1,7 +1,18 @@
-DangMooG 중고장터 프로젝트 서버 코드입니다.
+# DangMooG 중고장터 프로젝트 API 서버
 
-#실행코드
-uvicorn server.app:fastapi_app --reload  
+광주과학기술원 GIST의 원내 중고장터 활성화를 위한 서비스의 API 서버 소스코드입니다.
 
-#폴더위치
-server라는 폴더안에 이 전체 파일을 포함시켜주세요.
+계정, 게시물, 보관함 관리, 채팅기록 다양한 데이터들을 관리하는 역할을 합니다.
+
+
+### 실행코드
+
+- 의존성 설치
+```shell
+pip install -r requirements.txt
+```
+
+- 디버그용
+```shell
+uvicorn app:fastapi_app --reload
+```
