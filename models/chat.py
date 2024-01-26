@@ -33,7 +33,7 @@ class Room(Base):
     rooms_of_seller = relationship("Account", foreign_keys=[seller_id], backref="chat_rooms_seller")
     buyer_id = Column(Integer, ForeignKey("account.account_id"), nullable=False)
     rooms_of_buyer = relationship("Account", foreign_keys=[buyer_id], backref="chat_rooms_buyer")
-    status = Column(TINYINT, default=Null, comment="Null: 모두 읽기 가능, user_id: 해당 user_id 만 읽을 수 있음, -1: 아무도 못읽음")
+    status = Column(TINYINT, default=Null, comment="Null: 모두 읽기 가능, user_id: 해당 user_id 만 읽을 수 음, -1:없아무도 못읽음")
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")

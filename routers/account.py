@@ -14,6 +14,7 @@ from core.schema import RequestPage
 from core.utils import get_crud
 from models.account import Account
 from models.post import Post
+from models.chat import Room
 from schemas import account
 
 from typing import List
@@ -532,6 +533,18 @@ async def delete_account(current_user: Account=Depends(get_current_user), crud=D
     for post in posts:
         crud.patch_record(post, {"status": 3, "username": "알 수 없는 사용자"})
     crud.patch_record(record, {"available": 3})
+    seller_rooms = crud.search_record(Room, {"seller_id": current_user.account_id})
+    buyer_rooms = crud.search_record(Room, {"buyer_id": current_user.account_id})
+    for r in seller_rooms:
+        if status is not None:
+            crud.patch_record(r, {"status": -1})
+        else:
+            crud.patch_record(r, {"status": current_user.account_id})
+    for r in buyer_rooms:
+        if status is not None:
+            crud.patch_record(r, {"status": -1})
+        else:
+            crud.patch_record(r, {"status": current_user.account_id})
     if record is None:
         raise HTTPException(status_code=404, detail="Record not found")
     return Response(status_code=HTTP_204_NO_CONTENT)

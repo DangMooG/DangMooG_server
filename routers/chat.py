@@ -188,8 +188,12 @@ def get_my_room_ids(current_user: Account = Depends(get_current_user), crud=Depe
     rooms_buy = crud.search_record(Room, {"buyer_id": current_user.account_id})
 
     for r1 in rooms_sell:
+        if r1.status == current_user.account_id or r1.status == -1:
+            continue
         res.append(r1.room_id)
     for r2 in rooms_buy:
+        if r2.status == current_user.account_id or r2.status == -1:
+            continue
         res.append(r2.room_id)
 
     return chat.RoomIDs(room_ids=res)
