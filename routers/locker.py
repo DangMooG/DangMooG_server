@@ -126,3 +126,19 @@ async def get_locker_auth(post_id: int, crud=Depends(get_crud), current_user: Ac
         raise HTTPException(status_code=404, detail="Record not found")
     return locker.LockerPass(locker_id=lock.locker_id, name=lock.name, password=auth.password)
 
+
+@router.get(
+    "/locker_auth/{locker_id}",
+    name="사물함 정보, 비밀번호 전송",
+    description="locker_id를 입력하면 거래풀품 구매자 에게 locker_id, locker의 name, locker의 비밀번호가 전송됩니다.",
+    response_model=locker.LockerPass
+)
+async def get_locker_auth(locker_id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    lock: Locker = crud.get_record(Locker, {"locker_id": locker_id})
+    user_post: Post = crud.get_record(Post, {"post_id": lock.post_id})
+    if user_post.account_id != current_user.account_id:
+        raise HTTPException(status_code=401, detail="Unauthorized request")
+    auth: LockerAuth = crud.get_record(LockerAuth, {"post_id": lock.post_id})
+    if auth is None or lock is None:
+        raise HTTPException(status_code=404, detail="Record not found")
+    return locker.LockerPass(locker_id=lock.locker_id, name=lock.name, password=auth.password)
