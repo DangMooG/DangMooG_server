@@ -12,7 +12,7 @@ from pydantic import Field
 
 from core.schema import RequestPage
 from core.utils import get_crud
-from models.account import Account
+from models.account import Account, Blame
 from models.post import Post
 from models.chat import Room
 from schemas import account
@@ -53,6 +53,21 @@ async def send_mail(to_who):
         smtp.sendmail(sender, to_who, msg.as_string())
         smtp.quit()
     return token
+
+async def blame(post_id, content, account_id):
+    sender = "dotorit2023@gmail.com"
+    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.login(sender, environ["MAIL_API_KEY"])
+        msg = MIMEText(
+            f'{content}')
+        msg['Subject'] = f'{account_id}번 사용자가 {post_id}번의 게시물을 신고하였습니다.'
+        msg['From'] = sender
+        msg['To'] = sender
+        smtp.sendmail(sender, sender, msg.as_string())
+        smtp.quit()
+    return 0
 
 
 async def rate_limit(email):
@@ -519,6 +534,28 @@ def read_account(id: int, crud=Depends(get_crud)):
     if db_record is None:
         raise HTTPException(status_code=404, detail="Record not found")
     return db_record
+
+
+@router.post(
+    "/blame",
+    name="계정 신고 post",
+    description="신고기능 api.\n\n"
+                "다른 사용자의 게시물을 신고하는 기능을 위한 api 입니다.\n\n"
+                "필요한 것은 post_id, content(내용) + blamer_id(신고자 account_id)토큰(header) 입니다."
+)
+async def create_blame(req: account.CreateBlame, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    await blame(req.post_id, req.content, current_user.account_id)
+    return crud.create_record(Blame, account.UploadBlame(**req.dict(), blamer_id=current_user.account_id))
+
+
+@router.get(
+    "/list_blame",
+    name="Blame 리스트 조회",
+    description="Blame 테이블의 모든 Record를 가져옵니다",
+    response_model=List[account.ReadBlame],
+)
+def get_list(crud=Depends(get_crud)):
+    return crud.get_list(Blame)
 
 
 @router.delete(

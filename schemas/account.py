@@ -69,3 +69,25 @@ class Token(BaseModel):
 class RefreshToKen(BaseModel):
     refresh_token: Optional[str]
 
+
+class CreateBlame(BaseModel):
+    post_id: int
+    content: str
+
+    class Config:
+        orm_mode = True
+
+
+class UploadBlame(CreateBlame):
+    blamer_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ReadBlame(UploadBlame):
+    blame_id: int
+    create_time: datetime
+
+    class Config:
+        orm_mode = True

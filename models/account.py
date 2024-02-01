@@ -38,3 +38,14 @@ class Account(Base):
             "create_time": self.create_time,
             "update_time": self.update_time
         }
+
+
+class Blame(Base):
+    __tablename__ = "blame"
+    blame_id = Column(Integer, primary_key=True)
+    post_id = Column(Integer, nullable=False)
+    content = Column(TEXT, nullable=False)
+    blameer_id = Column(Integer, nullable=False)
+    create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+
+    mysql_engine = "InnoDB"
