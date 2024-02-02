@@ -45,7 +45,7 @@ class Blame(Base):
     blame_id = Column(Integer, primary_key=True)
     post_id = Column(Integer, nullable=False)
     content = Column(TEXT, nullable=False)
-    blameer_id = Column(Integer, nullable=False)
+    blamer_id = Column(Integer, nullable=False)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
 
     mysql_engine = "InnoDB"
