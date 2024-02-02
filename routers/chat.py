@@ -5,14 +5,14 @@ from starlette.status import HTTP_204_NO_CONTENT
 from core.schema import RequestPage
 from core.utils import get_crud
 from models.chat import *
-from schemas import chat, chat_photo
+from schemas import chat, photo
 from routers.account import get_current_user
 from routers.photo import upload_file
 from models.account import Account
-from models.photo import ChatPhoto
+from models.photo import MPhoto
 from models.post import Post
 
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Optional
 
 router = APIRouter(
     prefix="/chat",
@@ -21,6 +21,49 @@ router = APIRouter(
 """
 Chat table CRUD
 """
+
+
+@router.post(
+    "/photo_chat", name="사진 보내기 전용 채팅", description="Message 테이블에 사진 함께 Record를 생성합니다\n\n"
+                                                                 "사진 없이 그냥 files=처럼 아무런 값 지정하는 것 없이 글을 "
+                                                                 "생성할 수 있습니다.\n\n"
+                                                                 "기본적으로 사용자의 닉네임이 설정되어야만 게시물을 작성할 수 있습니다.\n\n"
+                                                                 "사진없이 글을 올릴 때와는 다르게 글의 내용에 들어갈 변수들은 쿼리(query)"
+                                                                 "형식으로 작성되어야 합니다.\n\n"
+                                                                 "title은 글의 제목(string)입니다.\n\n"
+                                                                 "price는 상품의 가격(integer)입니다.\n\n"
+                                                                 "description은 게시물 내용(string) 즉, 상품의 상세 설명과 거래 형태"
+                                                                 "에 대한 내용입니다.\n\n"
+                                                                 "category_id는 해당 게시물이 어느 카테고리(integer)에 속하는지에 "
+                                                                 "대한 내용입니다.\n\n"
+                                                                 "Request Body에 사진 파일들을 담으면 됩니다."
+                                                                 "(사진 없이도 게시글 업로드는 가능합니다.)",
+    response_model=chat.RecordChat
+)
+async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = Depends(), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    room_information = crud.search_record(Room, {"room_id": req.room_id})[0]
+    if room_information.buyer_id == current_user.account_id:
+        is_from_buyer = 1
+    else:
+        is_from_buyer = 0
+    temp_chat: Message = crud.create_record(Message, chat.Message(
+        room_id=req.room_id,
+        is_from_buyer=is_from_buyer,
+        is_photo=1,
+        content="img",
+        read=0
+    ))
+
+    for idx, file in enumerate(files):
+        url = await upload_file(file, "message")
+        temp_photo = photo.MPhotoUpload(
+            room_id=temp_chat.room_id,
+            url=url,
+            message_id=temp_chat.message_id,
+            account_id=current_user.account_id
+        )
+        crud.create_record(MPhoto, temp_photo)
+    return temp_chat
 
 
 @router.post(

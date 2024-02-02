@@ -36,3 +36,28 @@ class SearchPhoto(BaseModel):
     post_id: Optional[int]
     category_id: Optional[int]
     account_id: Optional[int]
+
+
+class MPhotoStart(BaseModel):
+    room_id: str
+
+    class Config:
+        orm_mode = True
+
+
+class MPhotoUpload(BaseModel):
+    room_id: str
+    url: str
+    message_id: int
+    account_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class MPhotoRead(MPhotoUpload):
+    m_photo_id: int
+    create_time: datetime
+
+    class Config:
+        orm_mode = True

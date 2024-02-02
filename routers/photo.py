@@ -6,7 +6,7 @@ from starlette.status import HTTP_204_NO_CONTENT
 
 from core.schema import RequestPage
 from core.utils import get_crud
-from models.photo import Photo
+from models.photo import Photo, MPhoto
 from models.post import Post
 from models.account import Account
 from routers.account import get_current_user
@@ -96,6 +96,19 @@ async def page_post(req: RequestPage, crud=Depends(get_crud)):
 async def search_post(filters: dict, crud=Depends(get_crud)):
     return crud.search_record(Photo, filters)
 
+
+@router.post(
+    "/m_search",
+    name="message Photo 테이블에서 입력한 조건들에 부합하는 record 를 반환하는 API",
+    description="body에 원하는 조건들을 입력하면 and로 필터 결과 리스트를 반환합니다\
+        조건값이 str 일 경우 그 문자열을 포함하는 모든 record를 반환합니다.\
+        조건값이 int,float 일 경우 그 값과 동일한 record만 반환합니다.\
+        조건값이 list 경우 list 항목을 포함하는 모든 record를 반환합니다.\
+    ",
+    response_model=List[photo.MPhotoRead],
+)
+async def search_post(filters: dict, crud=Depends(get_crud)):
+    return crud.search_record(MPhoto, filters)
 
 @router.get(
     "/list",
