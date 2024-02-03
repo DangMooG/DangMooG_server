@@ -50,7 +50,6 @@ async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = De
     for idx, file in enumerate(files):
         url = await upload_file(file, "message")
         temp_photo = photo.MPhotoUpload(
-            room_id=temp_chat.room_id,
             url=url,
             message_id=temp_chat.message_id,
             account_id=current_user.account_id

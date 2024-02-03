@@ -46,7 +46,6 @@ class MPhotoStart(BaseModel):
 
 
 class MPhotoUpload(BaseModel):
-    room_id: str
     url: str
     message_id: int
     account_id: int
