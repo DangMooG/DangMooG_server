@@ -12,7 +12,7 @@ Chat 테이블 schema
 class Message(BaseModel):
     room_id: str
     is_from_buyer: int
-    is_photo = int
+    is_photo: int
     content: str
     read: int
 
@@ -43,7 +43,7 @@ class RoomID(BaseModel):
 class RecordChat(BaseModel):
     message_id: int
     is_from_buyer: int
-    is_photo = int
+    is_photo: int
     content: str
     read: int
     create_time: datetime
