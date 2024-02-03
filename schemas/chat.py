@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from pydantic import BaseModel
 
@@ -13,7 +13,7 @@ class Message(BaseModel):
     room_id: str
     is_from_buyer: int
     is_photo: int
-    content: str
+    content: Union[str, List[str]]
     read: int
 
     class Config:
@@ -44,7 +44,7 @@ class RecordChat(BaseModel):
     message_id: int
     is_from_buyer: int
     is_photo: int
-    content: str
+    content: Union[str, List[str]]
     read: int
     create_time: datetime
 

@@ -1,3 +1,6 @@
+import ast
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
@@ -43,7 +46,7 @@ async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = De
         content="img",
         read=0
     ))
-
+    update_content = []
     for idx, file in enumerate(files):
         url = await upload_file(file, "message")
         temp_photo = photo.MPhotoUpload(
@@ -53,6 +56,8 @@ async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = De
             account_id=current_user.account_id
         )
         crud.create_record(MPhoto, temp_photo)
+        update_content.append(url)
+    temp_chat = crud.patch_record(temp_chat, {"content": json.dumps(update_content)})
     return temp_chat
 
 
@@ -79,10 +84,12 @@ async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_use
     response_model=List[chat.RecordChat],
 )
 def get_unread_list(room_id: str, crud=Depends(get_crud)):
-    messages = crud.search_record(Message, {"room_id": room_id, "read": 0})
+    messages: List[chat.RecordChat] = crud.search_record(Message, {"room_id": room_id, "read": 0})
     for m in messages:
         crud.patch_record(m, {"read": 1})  # 읽음 처리
         m.read = 1
+        if m.is_photo:
+            m.content = ast.literal_eval(m.content)
     return messages
 
 
@@ -94,11 +101,13 @@ def get_unread_list(room_id: str, crud=Depends(get_crud)):
     response_model=List[chat.RecordChat],
 )
 def get_all_list(room_id: str, crud=Depends(get_crud)):
-    messages = crud.search_record(Message, {"room_id": room_id})
+    messages: List[chat.RecordChat] = crud.search_record(Message, {"room_id": room_id})
     for m in messages:
         if m.read == 0:
             crud.patch_record(m, {"read": 1})  # 읽음 처리
             m.read = 1
+            if m.is_photo:
+                m.content = ast.literal_eval(m.content)
     return messages
 
 
@@ -181,7 +190,10 @@ def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_curr
         count = 0
         last: Message = crud.search_record(Message, {"room_id": room})
         if last:
-            lasts.append(last[-1].content)
+            if last[-1].is_photo:
+                lasts.append(ast.literal_eval(last[-1].content))
+            else:
+                lasts.append(last[-1].content)
             times.append(last[-1].create_time)
         else:
             lasts.append(None)
