@@ -100,13 +100,14 @@ def get_unread_list(room_id: str, crud=Depends(get_crud)):
     response_model=List[chat.RecordChat],
 )
 def get_all_list(room_id: str, crud=Depends(get_crud)):
-    messages: List[chat.RecordChat] = crud.search_record(Message, {"room_id": room_id})
+    messages: List[Message] = crud.search_record(Message, {"room_id": room_id})
     for idx, m in enumerate(messages):
         if m.read == 0:
             crud.patch_record(m, {"read": 1})  # 읽음 처리
             m.read = 1
         if m.is_photo:
-            messages[idx].content = ast.literal_eval(str(m.content))
+            print(m.content, type(m.content))
+            messages[idx].content = ast.literal_eval(m.content)
     return messages
 
 
@@ -190,7 +191,7 @@ def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_curr
         last: Message = crud.search_record(Message, {"room_id": room})
         if last:
             if last[-1].is_photo:
-                lasts.append(ast.literal_eval(str(last[-1].content)))
+                lasts.append(ast.literal_eval(last[-1].content))
             else:
                 lasts.append(last[-1].content)
             times.append(last[-1].create_time)
