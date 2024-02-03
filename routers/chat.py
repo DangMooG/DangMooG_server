@@ -56,8 +56,7 @@ async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = De
         )
         crud.create_record(MPhoto, temp_photo)
         update_content.append(url)
-    temp_chat = crud.patch_record(temp_chat, {"content": json.dumps(update_content)})
-    return temp_chat
+    return crud.patch_record(temp_chat, {"content": json.dumps(update_content)})
 
 
 @router.post(
@@ -106,8 +105,11 @@ def get_all_list(room_id: str, crud=Depends(get_crud)):
             crud.patch_record(m, {"read": 1})  # 읽음 처리
             m.read = 1
         if m.is_photo:
+            if m.content == "img":
+                continue
             print(m.content, type(m.content))
             messages[idx].content = ast.literal_eval(m.content)
+            print(messages[idx].content, type(messages[idx].content))
     return messages
 
 
