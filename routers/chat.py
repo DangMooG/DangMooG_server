@@ -81,7 +81,7 @@ async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_use
                 "가져옴과 동시에 읽음처리가 진행됩니다.",
     response_model=List[chat.RecordChat],
 )
-def get_unread_list(room_id: str, crud=Depends(get_crud)):
+async def get_unread_list(room_id: str, crud=Depends(get_crud)):
     messages: List[chat.RecordChat] = crud.search_record(Message, {"room_id": room_id, "read": 0})
     for m in messages:
         crud.patch_record(m, {"read": 1})  # 읽음 처리
@@ -98,19 +98,22 @@ def get_unread_list(room_id: str, crud=Depends(get_crud)):
                 "가져옴과 동시에 읽음처리가 진행됩니다.",
     response_model=List[chat.RecordChat],
 )
-def get_all_list(room_id: str, crud=Depends(get_crud)):
+async def get_all_list(room_id: str, crud=Depends(get_crud)):
     messages: List[Message] = crud.search_record(Message, {"room_id": room_id})
-    for idx, m in enumerate(messages):
+    res = []
+    for m in messages:
         if m.read == 0:
+            print("read 0", m.content, type(m.content))
             crud.patch_record(m, {"read": 1})  # 읽음 처리
             m.read = 1
         if m.is_photo:
             if m.content == "img":
                 continue
             print(m.content, type(m.content))
-            messages[idx].content = ast.literal_eval(m.content)
-            print(messages[idx].content, type(messages[idx].content))
-    return messages
+            m.content = ast.literal_eval(m.content)
+            res.append(m)
+            print(m.content, type(m.content))
+    return res
 
 
 @router.post(
@@ -120,7 +123,7 @@ def get_all_list(room_id: str, crud=Depends(get_crud)):
                 "정보는 해당 채팅방의 post_id의 리스트와 iam_buyer 내가 구매자인지 판단하는 bool 리스트 입니다.",
     response_model=chat.Readroom,
 )
-def read_post(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+async def read_post(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     ids = []
     iams = []
     repr_photos = []
@@ -152,7 +155,7 @@ def read_post(req: chat.OppoRoom, current_user: Account = Depends(get_current_us
                 "자신의 account id를 보내는 것이 아닌 헤더에 로그인 토큰을 보내야 합니다.",
     response_model=chat.OppoName
 )
-def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+async def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     res = []
     profiles = []
     for room in req.rooms:
@@ -183,7 +186,7 @@ def get_opponents_name(req: chat.OppoRoom, current_user: Account = Depends(get_c
                 "입력 - 채팅방 UUID 리스트, 출력 - lasts: 각 리스트 순번에 맞는 마지막 메시지 목록, counts: 각 리스트 순번에 맞는 읽어야 하는 메지시 수",
     response_model=chat.RoomStatus
 )
-def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+async def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     lasts = []
     times = []
     counts = []
@@ -229,7 +232,7 @@ def get_room_status(req: chat.OppoRoom, current_user: Account = Depends(get_curr
                 "나간 처리된 채팅방은 불러 오지 않도록 설계되었습니다.",
     response_model=chat.RoomIDs
 )
-def get_my_room_ids(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+async def get_my_room_ids(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     res = []
     rooms_sell = crud.search_record(Room, {"seller_id": current_user.account_id})
     rooms_buy = crud.search_record(Room, {"buyer_id": current_user.account_id})
