@@ -71,7 +71,8 @@ class RefreshToKen(BaseModel):
 
 
 class CreateBlame(BaseModel):
-    post_id: int
+    blame_user: int
+    blamed_id: int
     content: str
 
     class Config:

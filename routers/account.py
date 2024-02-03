@@ -54,15 +54,20 @@ async def send_mail(to_who):
         smtp.quit()
     return token
 
-async def blame(post_id, content, account_id):
+
+async def blame(blame_user, blamed_id, content, account_id):
     sender = "dotorit2023@gmail.com"
+    if blame_user:
+        txt = '사용자'
+    else:
+        txt = '게시물'
     with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
         smtp.ehlo()
         smtp.starttls()
         smtp.login(sender, environ["MAIL_API_KEY"])
         msg = MIMEText(
             f'{content}')
-        msg['Subject'] = f'{account_id}번 사용자가 {post_id}번의 게시물을 신고하였습니다.'
+        msg['Subject'] = f'{account_id}번 사용자가 {blamed_id}번의 {txt}을 신고하였습니다.'
         msg['From'] = sender
         msg['To'] = sender
         smtp.sendmail(sender, sender, msg.as_string())
@@ -541,10 +546,11 @@ def read_account(id: int, crud=Depends(get_crud)):
     name="계정 신고 post",
     description="신고기능 api.\n\n"
                 "다른 사용자의 게시물을 신고하는 기능을 위한 api 입니다.\n\n"
-                "필요한 것은 post_id, content(내용) + blamer_id(신고자 account_id)토큰(header) 입니다."
+                "필요한 것은 blame_user(유저신고면 이곳에 1 아니고 게시물 신고면 0 입력), blamed_id, "
+                "content(내용) + blamer_id(신고자 account_id)토큰(header) 입니다."
 )
 async def create_blame(req: account.CreateBlame, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
-    await blame(req.post_id, req.content, current_user.account_id)
+    await blame(req.blame_user, req.blamed_id, req.content, current_user.account_id)
     return crud.create_record(Blame, account.UploadBlame(**req.dict(), blamer_id=current_user.account_id))
 
 

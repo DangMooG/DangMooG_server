@@ -43,7 +43,8 @@ class Account(Base):
 class Blame(Base):
     __tablename__ = "blame"
     blame_id = Column(Integer, primary_key=True)
-    post_id = Column(Integer, nullable=False)
+    blame_user = Column(TINYINT, default=0)
+    blamed_id = Column(Integer, nullable=False)
     content = Column(TEXT, nullable=False)
     blamer_id = Column(Integer, nullable=False)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
