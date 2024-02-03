@@ -1,7 +1,7 @@
 import ast
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT
 
@@ -61,7 +61,7 @@ async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = De
 
 
 @router.post(
-    "/create_post_chat_room", name="chat room 조회", description="채팅방의 Websocket 접속을 위한 방의 UUID를 가져옵니다.\n\n"
+    "/create_post_chat_room", name="chat room 조회", description="채팅방의 socket 접속을 위한 방의 UUID를 가져옵니다.\n\n"
                                                        "본인임을 인증하기 위해서 토큰이 필요하고, 추가로 접근하고자 하는 게시물의 post id를 "
                                                        "같이 담아서 보내야 합니다.\n\n"
                                                                "만약 기존에 방이 존재하다면 기존에 생성된 채팅방의 room_id를 보냅니다.",
@@ -101,12 +101,12 @@ def get_unread_list(room_id: str, crud=Depends(get_crud)):
 )
 def get_all_list(room_id: str, crud=Depends(get_crud)):
     messages: List[chat.RecordChat] = crud.search_record(Message, {"room_id": room_id})
-    for m in messages:
+    for idx, m in enumerate(messages):
         if m.read == 0:
             crud.patch_record(m, {"read": 1})  # 읽음 처리
             m.read = 1
             if m.is_photo:
-                m.content = ast.literal_eval(m.content)
+                messages[idx].content = ast.literal_eval(m.content)
     return messages
 
 

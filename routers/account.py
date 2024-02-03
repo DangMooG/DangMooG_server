@@ -9,6 +9,8 @@ from starlette.status import HTTP_204_NO_CONTENT, HTTP_200_OK
 from typing_extensions import Annotated
 from passlib.context import CryptContext
 from pydantic import Field
+import firebase_admin
+from firebase_admin import credentials, auth
 
 from core.schema import RequestPage
 from core.utils import get_crud
@@ -84,6 +86,23 @@ async def rate_limit(email):
             raise HTTPException(status_code=429, detail="Too many requests. Please wait a minute.")
     # 현재 시간 업데이트
     last_request_time[email] = current_time
+
+
+async def check_fcm(token: str):
+    try:
+        # ID 토큰 검증
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token['uid']
+        print(f"토큰이 유효합니다. 사용자 UID: {uid}")
+        return True
+        # 추가 정보 추출 가능
+    except firebase_admin.auth.InvalidIdTokenError:
+        print("토큰이 유효하지 않습니다.")
+        return False
+    except Exception as e:
+        # 기타 예외 처리
+        print(f"토큰 검증 중 예외 발생: {e}")
+        return False
 
 
 """
@@ -308,6 +327,7 @@ def get_current_user(token: str = Depends(oauth2_scheme),
             "content": {
                 "application/json": {
                     "example": {
+                        "status": 1,
                         "account_id": 1,
                         "username": "jaesun",
                         "email": "rejaealsun@gm.gist.ac.kr",
@@ -328,13 +348,28 @@ def get_current_user(token: str = Depends(oauth2_scheme),
         }
     }
 )
-async def check_token(current_user: Account = Depends(get_current_user)):
+async def check_token(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     result = current_user.to_dict()
+    res = await check_fcm(result["fcm"])
+    if res is False:
+        crud.patch_record(Account, {"fcm": None})
+        result["status"] = 0
+    else:
+        result["status"] = 1
     if result["gm"]:
         result["email"] = result["email"]+"@gm.gist.ac.kr"
     else:
         result["email"] = result["email"] + "@gist.ac.kr"
     return result
+
+
+@router.patch(
+    "/fcm_update", name="fcm 토큰 업데이트", description="Account의 fcm이 유효하지 않을때, 새롭게 fcm을 업데이트 하는 api입니다."
+                                                   "쿼리 fcm에 토큰을 기입해서 요청해주세요."
+)
+async def update_fcm_token(fcm: str, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    return crud.patch_record(current_user, {"fcm": fcm})
+
 
 
 @router.post(
