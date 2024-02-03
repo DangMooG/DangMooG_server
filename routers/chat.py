@@ -100,14 +100,17 @@ def get_unread_list(room_id: str, crud=Depends(get_crud)):
     response_model=List[chat.RecordChat],
 )
 def get_all_list(room_id: str, crud=Depends(get_crud)):
-    messages: List[chat.RecordChat] = crud.search_record(Message, {"room_id": room_id})
-    for idx, m in enumerate(messages):
+    messages: List[Message] = crud.search_record(Message, {"room_id": room_id})
+    response = []
+    for m in messages:
         if m.read == 0:
             crud.patch_record(m, {"read": 1})  # 읽음 처리
-            m.read = 1
-            if m.is_photo:
-                messages[idx].content = ast.literal_eval(m.content)
-    return messages
+            record_dict = m.to_dict()
+            record_dict["read"] = 1
+            if record_dict["is_photo"]:
+                record_dict["content"] = ast.literal_eval(m.content)
+            response.append(record_dict)
+    return response
 
 
 @router.post(

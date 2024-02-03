@@ -33,3 +33,14 @@ class Message(Base):
     read = Column(TINYINT, default=0)
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     mysql_engine = "InnoDB"
+
+    def to_dict(self):
+        return {
+            "message_id": self.message_id,
+            "room_id": self.room_id,
+            "is_from_buyer": self.is_from_buyer,
+            "is_photo": self.is_photo,
+            "content": self.content,
+            "read": self.read,
+            "create_time": self.create_time,
+        }
