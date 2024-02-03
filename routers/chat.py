@@ -27,7 +27,8 @@ Chat table CRUD
     "/photo_chat", name="사진 보내기 전용 채팅", description="Message 테이블에 사진 함께 Record를 생성합니다\n\n"
                                                                  "들어갈 변수들은 쿼리(query)"
                                                                  "형식으로 작성되어야 합니다.\n\n"
-                                                                 "Request Body에 사진 파일들을 담으면 됩니다."
+                                                                 "Request Body에 사진 파일들을 담으면 됩니다.",
+    response_model=chat.RecordChat
 )
 async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = Depends(), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     room_information = crud.search_record(Room, {"room_id": req.room_id})[0]
