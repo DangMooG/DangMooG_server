@@ -2,7 +2,7 @@ from sqlalchemy import VARCHAR, Column, Integer, text, ForeignKey, Null
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TIMESTAMP
-from chat import Message
+from models.chat import Message
 from core.db import Base
 
 
