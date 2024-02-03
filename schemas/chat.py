@@ -84,7 +84,7 @@ class OppoName(BaseModel):
 
 
 class RoomStatus(BaseModel):
-    last_messages: List[Optional[str]]
+    last_messages: List[Union[str, None, List[str]]]
     update_times: List[Optional[datetime]]
     counts: List[int]
 
