@@ -56,7 +56,9 @@ async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = De
         )
         crud.create_record(MPhoto, temp_photo)
         update_content.append(url)
-    return crud.patch_record(temp_chat, {"content": json.dumps(update_content)})
+    response = crud.patch_record(temp_chat, {"content": json.dumps(update_content)})
+    response.content = update_content
+    return response
 
 
 @router.post(
