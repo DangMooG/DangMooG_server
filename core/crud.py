@@ -85,7 +85,6 @@ class CRUD:
                 next_checkpoint = -1
             return {"items": items, "next_checkpoint": next_checkpoint}
 
-
     def search_record(self, table: BaseModel, req: Union[BaseModel, dict]):
         if isinstance(req, BaseModel):
             req = req.dict()

@@ -100,20 +100,17 @@ async def get_unread_list(room_id: str, crud=Depends(get_crud)):
 )
 async def get_all_list(room_id: str, crud=Depends(get_crud)):
     messages: List[Message] = crud.search_record(Message, {"room_id": room_id})
-    res = []
-    for m in messages:
+    for idx, m in enumerate(messages):
         if m.read == 0:
-            print("read 0", m.content, type(m.content))
+            crud_generator = get_crud()
+            crud = next(crud_generator)
             crud.patch_record(m, {"read": 1})  # 읽음 처리
             m.read = 1
         if m.is_photo:
             if m.content == "img":
                 continue
-            print(m.content, type(m.content))
-            m.content = ast.literal_eval(m.content)
-            res.append(m)
-            print(m.content, type(m.content))
-    return res
+            messages[idx].content = ast.literal_eval(m.content)
+    return messages
 
 
 @router.post(
