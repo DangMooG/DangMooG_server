@@ -108,7 +108,6 @@ async def get_unread_list(room_id: str, crud=Depends(get_crud)):
 async def get_all_list(room_id: str, crud=Depends(get_crud)):
     messages: List[Message] = crud.search_record(Message, {"room_id": room_id})
     for idx, m in enumerate(messages):
-        print(m.content)
         if m.read == 0:
             crud_generator = get_crud()
             crud = next(crud_generator)
