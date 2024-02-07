@@ -97,27 +97,28 @@ async def get_unread_list(room_id: str, crud=Depends(get_crud)):
             messages[idx].content = ast.literal_eval(m.content)
     return messages
 
-
 @router.get(
     "/all/{room_id}",
     name="채팅방에서 모든 메시지 가져오기",
     description="한 채팅방의 모든 메시지를 가져옵니다.\n\n"
-                "가져옴과 동시에 읽음처리가 진행됩니다.",
+                "가져옴과 동시에 사용자 입장에서의 읽음처리가 진행됩니다. "
+                "추가로 JWT를 헤더에 같이 입력해주어야 합니다.",
     response_model=List[chat.RecordChat],
 )
-async def get_all_list(room_id: str, crud=Depends(get_crud)):
-    messages = crud.search_record(Message, {"room_id": room_id})
-    for idx, m in enumerate(messages):
-        if m.read == 0:
-            crud_generator = get_crud()
-            crud = next(crud_generator)
-            crud.patch_record(m, {"read": 1})  # 읽음 처리
-            messages[idx].read = 1
+async def get_all_list(room_id: str, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+    room_info: Room = crud.get_record(Room, {"room_id": room_id})
+    if room_info.buyer_id == current_user.account_id:
+        messages = crud.search_record(Message, {"room_id": room_id, "is_from_buyer": 1})
+    else:
+        messages = crud.search_record(Message, {"room_id": room_id, "is_from_buyer": 0})
+    crud.patch_all(messages, {"read": 1})
+    all_messages = crud.search_record(Message, {"room_id": room_id})
+    for idx, m in enumerate(all_messages):
         if m.is_photo:
             if m.content == "img":
                 continue
-            messages[idx].content = ast.literal_eval(m.content)
-    return messages
+            all_messages[idx].content = ast.literal_eval(m.content)
+    return all_messages
 
 
 @router.post(

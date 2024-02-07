@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from typing import Union
+from typing import Union, List
 
 
 class CRUD:
@@ -48,6 +48,19 @@ class CRUD:
         self.session.commit()
 
         return db_record
+
+    def patch_all(self, db_records: List[BaseModel], req: Union[BaseModel, dict]):
+        if isinstance(req, BaseModel):
+            req = req.dict()
+        for db_record in db_records:
+            for key, value in req.items():
+                if value:
+                    setattr(db_record, key, value)
+                if value == 0:
+                    setattr(db_record, key, value)
+        self.session.commit()
+
+        return db_records
 
     def delete_record(self, table: BaseModel, cond={}):
         db_record = self.get_record(table, cond)
