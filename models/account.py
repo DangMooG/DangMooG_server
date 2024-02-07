@@ -64,7 +64,8 @@ class Account(Base):
             "bank_info": self.bank_info,
             "account_number": self.account_number,
             "create_time": self.create_time,
-            "update_time": self.update_time
+            "update_time": self.update_time,
+            "name_time": self.name_time
         }
 
 
