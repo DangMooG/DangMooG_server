@@ -84,13 +84,13 @@ async def get_chatroom(req: chat.RoomNumber, crud=Depends(get_crud), current_use
     response_model=List[chat.RecordChat],
 )
 async def get_unread_list(room_id: str, crud=Depends(get_crud)):
-    messages: List[chat.RecordChat] = crud.search_record(Message, {"room_id": room_id, "read": 0})
+    messages = crud.search_record(Message, {"room_id": room_id, "read": 0})
     for idx, m in enumerate(messages):
         if m.read == 0:
             crud_generator = get_crud()
             crud = next(crud_generator)
             crud.patch_record(m, {"read": 1})  # 읽음 처리
-            m.read = 1
+            messages[idx].read = 1
         if m.is_photo:
             if m.content == "img":
                 continue
@@ -106,13 +106,13 @@ async def get_unread_list(room_id: str, crud=Depends(get_crud)):
     response_model=List[chat.RecordChat],
 )
 async def get_all_list(room_id: str, crud=Depends(get_crud)):
-    messages: List[Message] = crud.search_record(Message, {"room_id": room_id})
+    messages = crud.search_record(Message, {"room_id": room_id})
     for idx, m in enumerate(messages):
         if m.read == 0:
             crud_generator = get_crud()
             crud = next(crud_generator)
             crud.patch_record(m, {"read": 1})  # 읽음 처리
-            m.read = 1
+            messages[idx].read = 1
         if m.is_photo:
             if m.content == "img":
                 continue
