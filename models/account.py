@@ -40,7 +40,7 @@ class Account(Base):
     available = Column(TINYINT, nullable=False, default=2)
     jail_until = Column(TIMESTAMP)
     fcm = Column(TEXT)
-    bank_info = Column(EncryptedColumn(25))
+    bank_info = Column(EncryptedColumn(255))
     account_number = Column(EncryptedColumn(255))
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
