@@ -34,8 +34,11 @@ class ReadAccount(BaseModel):
     profile_url: Optional[str]
     available: Optional[int]
     jail_until: Optional[datetime]
+    bank_info: Optional[str]
+    account_number: Optional[str]
     create_time: datetime
     update_time: datetime
+    name_time: datetime
 
     class Config:
         orm_mode = True
@@ -54,6 +57,15 @@ class NicnameSet(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class BankSet(BaseModel):
+    bank_info: str = Field(..., example="재선은행")
+    account_number: str = Field(..., example="012-3456-8790")
+
+    class Config:
+        orm_mode = True
+
 
 class PhotoAccount(BaseModel):
     profile_url: str

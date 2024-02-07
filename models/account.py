@@ -1,9 +1,32 @@
 from sqlalchemy import VARCHAR, Column, Integer, TEXT, text, CHAR
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import relationship
-from sqlalchemy.types import TIMESTAMP
+from sqlalchemy.types import TypeDecorator, TIMESTAMP
+from cryptography.fernet import Fernet
 
 from core.db import Base
+import os
+
+key = os.environ["AES_KEY"]
+key.encode('utf-8')
+cipher_suite = Fernet(key)
+
+
+class EncryptedColumn(TypeDecorator):
+    """
+    양방향 암호화된 컬럼을 나타내는 타입 데코레이터
+    """
+    impl = VARCHAR
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = cipher_suite.encrypt(value.encode('utf-8'))
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = cipher_suite.decrypt(value).decode('utf-8')
+        return value
 
 
 class Account(Base):
@@ -17,10 +40,13 @@ class Account(Base):
     available = Column(TINYINT, nullable=False, default=2)
     jail_until = Column(TIMESTAMP)
     fcm = Column(TEXT)
+    bank_info = Column(EncryptedColumn(25))
+    account_number = Column(EncryptedColumn(255))
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     update_time = Column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     )
+    name_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
 
     mysql_engine = "InnoDB"
 
@@ -35,6 +61,8 @@ class Account(Base):
             "available": self.available,
             "jail_until": self.jail_until,
             "fcm": self.fcm,
+            "bank_info": self.bank_info,
+            "account_number": self.account_number,
             "create_time": self.create_time,
             "update_time": self.update_time
         }

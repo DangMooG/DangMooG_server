@@ -316,7 +316,7 @@ def get_current_user(token: str = Depends(oauth2_scheme),
                 "-H 'Authorization: Bearer {token hash} \n\n"
                 "위 같이 헤더에 Bearer방식으로 토큰을 넣어서 post하면 됩니다.",
     response_model=account.ReadAccount,
-    response_model_exclude={"create_time", "update_time", "jail_until", "gm"},
+    response_model_exclude={"create_time", "update_time", "jail_until", "gm", "name_time"},
     responses={
         200: {
             "description": "정상적으로 인증이 완료되었을 때.\n\n"
@@ -357,7 +357,7 @@ async def check_token(current_user: Account = Depends(get_current_user), crud=De
     else:
         result["status"] = 1
     if result["gm"]:
-        result["email"] = result["email"]+"@gm.gist.ac.kr"
+        result["email"] = result["email"] + "@gm.gist.ac.kr"
     else:
         result["email"] = result["email"] + "@gist.ac.kr"
     return result
@@ -462,11 +462,27 @@ async def update_post_sub(req: account.NicnameSet, crud=Depends(get_crud), curre
     if crud.get_record(Account, filter):
         raise HTTPException(status_code=409, detail="Already reserved username")
     if current_user.available:
-        crud.patch_record(db_record, {"available": current_user.available-1})
+        crud.patch_record(db_record, {"available": current_user.available-1, "name_time": datetime.now()})
         return crud.patch_record(db_record, req)
-    limit_day = db_record.update_time + timedelta(days=30)
+    limit_day = db_record.name_time + timedelta(days=30)
     if current_user.available == 0 and datetime.now() < limit_day:
         raise HTTPException(status_code=401, detail=f"{limit_day} 이후에 닉네임을 변결할 수 있습니다.")
+    return crud.patch_record(db_record, req)
+
+
+@router.post(
+    "/bank",
+    name="사용자의 계좌 정보 입력 및 수정",
+    description="사용자의 계좌 정보를 설정합니다. 토큰과 함께, 은행명, 계좌번호를 전송하면 됩니다. \n\n"
+                "기본적으로 계좌번호는 AES 양방향 암호화를 통해서 암호화 및 복호화 됩니다.",
+    response_model=account.ReadAccount,
+    response_model_exclude={"create_time", "update_time", "available", "jail_until"},
+)
+async def bank_post(req: account.BankSet, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    filter = {"account_id": current_user.account_id}
+    db_record = crud.get_record(Account, filter)
+    if db_record is None:
+        raise HTTPException(status_code=404, detail="Record not found")
     return crud.patch_record(db_record, req)
 
 
