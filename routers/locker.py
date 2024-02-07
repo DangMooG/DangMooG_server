@@ -124,7 +124,7 @@ async def get_locker_auth(post_id: int, crud=Depends(get_crud), current_user: Ac
     lock: Locker = crud.get_record(Locker, {"post_id": post_id})
     if auth is None or lock is None:
         raise HTTPException(status_code=404, detail="Record not found")
-    return locker.LockerPass(locker_id=lock.locker_id, name=lock.name, password=auth.password)
+    return locker.LockerPass(locker_id=lock.locker_id, name=lock.name, photo_url=auth.photo_url, password=auth.password)
 
 
 @router.get(
@@ -141,4 +141,4 @@ async def get_locker_auth(locker_id: int, crud=Depends(get_crud), current_user: 
     auth: LockerAuth = crud.get_record(LockerAuth, {"post_id": lock.post_id})
     if auth is None or lock is None:
         raise HTTPException(status_code=404, detail="Record not found")
-    return locker.LockerPass(locker_id=lock.locker_id, name=lock.name, password=auth.password)
+    return locker.LockerPass(locker_id=lock.locker_id, name=lock.name, photo_url=auth.photo_url, password=auth.password)
