@@ -9,8 +9,6 @@ from starlette.status import HTTP_204_NO_CONTENT, HTTP_200_OK
 from typing_extensions import Annotated
 from passlib.context import CryptContext
 from pydantic import Field
-import firebase_admin
-from firebase_admin import credentials, auth
 
 from core.schema import RequestPage
 from core.utils import get_crud
@@ -87,22 +85,6 @@ async def rate_limit(email):
     # 현재 시간 업데이트
     last_request_time[email] = current_time
 
-
-async def check_fcm(token: str):
-    try:
-        # ID 토큰 검증
-        decoded_token = auth.verify_id_token(token)
-        uid = decoded_token['uid']
-        print(f"토큰이 유효합니다. 사용자 UID: {uid}")
-        return True
-        # 추가 정보 추출 가능
-    except firebase_admin.auth.InvalidIdTokenError:
-        print("토큰이 유효하지 않습니다.")
-        return False
-    except Exception as e:
-        # 기타 예외 처리
-        print(f"토큰 검증 중 예외 발생: {e}")
-        return False
 
 
 """
@@ -348,14 +330,8 @@ def get_current_user(token: str = Depends(oauth2_scheme),
         }
     }
 )
-async def check_token(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+async def check_token(current_user: Account = Depends(get_current_user)):
     result = current_user.to_dict()
-    res = await check_fcm(result["fcm"])
-    if res is False:
-        crud.patch_record(Account, {"fcm": None})
-        result["status"] = 0
-    else:
-        result["status"] = 1
     if result["gm"]:
         result["email"] = result["email"] + "@gm.gist.ac.kr"
     else:
