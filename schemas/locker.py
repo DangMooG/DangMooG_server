@@ -53,6 +53,7 @@ class AuthRead(LockerAuth):
 class LockerPass(BaseModel):
     locker_id: int
     name: str
+    photo_url: str
     password: str
 
     class Config:
