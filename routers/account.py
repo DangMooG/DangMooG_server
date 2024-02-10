@@ -17,7 +17,7 @@ from models.post import Post
 from models.chat import Room
 from schemas import account
 
-from typing import List
+from typing import List, Optional
 from os import environ
 from datetime import timedelta, datetime
 import dotenv
@@ -343,7 +343,7 @@ async def check_token(current_user: Account = Depends(get_current_user)):
     "/fcm_update", name="fcm 토큰 업데이트", description="Account의 fcm이 유효하지 않을때, 새롭게 fcm을 업데이트 하는 api입니다."
                                                    "쿼리 fcm에 토큰을 기입해서 요청해주세요."
 )
-async def update_fcm_token(fcm: str, current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+async def update_fcm_token(fcm: Optional[str], current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     return crud.patch_record(current_user, {"fcm": fcm})
 
 
