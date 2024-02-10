@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Body, Form
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Body, Form, Query
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -17,7 +17,7 @@ from models.post import Post
 from models.chat import Room
 from schemas import account
 
-from typing import List, Optional
+from typing import List, Union
 from os import environ
 from datetime import timedelta, datetime
 import dotenv
@@ -343,7 +343,7 @@ async def check_token(current_user: Account = Depends(get_current_user)):
     "/fcm_update", name="fcm 토큰 업데이트", description="Account의 fcm이 유효하지 않을때, 새롭게 fcm을 업데이트 하는 api입니다."
                                                    "쿼리 fcm에 토큰을 기입해서 요청해주세요."
 )
-async def update_fcm_token(fcm: Optional[str], current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
+async def update_fcm_token(fcm: Union[str, None] = Query(default=None), current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     return crud.patch_record(current_user, {"fcm": fcm})
 
 
