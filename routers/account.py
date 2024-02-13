@@ -149,6 +149,7 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
         else:
             req.email = mail_id
             db_account = account.AccountSet(**req.dict(), password=pwd_context.hash(environ["SPECIAL_PWD"]), gm=0)
+            print(environ["SPECIAL_PWD"])
             crud.create_record(Account, db_account)
             return JSONResponse(jsonable_encoder([{
                 "status": 0,
