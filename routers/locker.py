@@ -49,8 +49,10 @@ def get_list(crud=Depends(get_crud)):
             temp_post: Post = crud.get_record(Post, {"post_id": one_locker.post_id})
             if (one_locker.post_id is None or one_locker.account_id is None) and datetime.now() > one_locker.update_time + timedelta(minutes=5):
                 crud.patch_record(one_locker, {"status": 1, "account_id": None})
-            elif temp_post.use_locker == 1 and datetime.now() > one_locker.update_time + timedelta(minutes=30):
+            elif temp_post.use_locker == 1 and datetime.now() > one_locker.update_time + timedelta(minutes=15):
                 crud.patch_record(one_locker, {"status": 1, "account_id": None})
+            elif datetime.now() > one_locker.update_time + timedelta(days=14):
+                crud.patch_record(one_locker, {"status": 1, "post_id": None, "account_id": None})
             corresponded_post = crud.get_record(Post, {"post_id": one_locker.post_id})
             if corresponded_post.status == 2:
                 crud.patch_record(one_locker, {"status": 1, "post_id": None, "account_id": None})
