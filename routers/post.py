@@ -450,7 +450,9 @@ async def update_post(req: post.PhotoPost, id: int, crud=Depends(get_crud), curr
                                  "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
                                  "category_id": 1,
                                  "status": 0,
-                                 "use_locker": 0,
+                                 "buyer": 72,
+                                 "use_locker": 2,
+                                 "locker_id": 12,
                                  "username": "your_nickname",
                                  "post_id": 7,
                                  "representative_photo_id": 13
@@ -476,6 +478,55 @@ async def update_post_sub(id: int, req: dict = Body(..., examples=[{
         raise HTTPException(status_code=401, detail="Unauthorized request")
 
     return crud.patch_record(db_record, req)
+
+
+@router.patch(
+    "/done/{room_id}",
+    name="거래중인 Post 거래완료 처리",
+    description="사용자 본인이 판매하고 있는 게시물의 채팅를 {room_id}에 입력하면 해당 게시물이 거래 완료 상태로 전환되고 구매자는 해당"
+                "채팅방에 소속된 구매자로 등록이 됩니다.\n\n"
+                "본인이 판매자인 개시물이어야 합니다. 헤더에 토큰도 같이 보내야 합니다.",
+    response_model=post.ReadPost,
+    response_model_exclude={"account_id", "liked", "create_time", "update_time"},
+    responses={
+                 200: {
+                     "description": "정상적으로 게시물이 데이터베이스에 업데이트 되었을 때의 출력입니다.",
+                     "content": {
+                         "application/json": {
+                             "example": {
+                                 "title": "짱구 띠부띠부 스티커 한정판",
+                                 "price": 10000,
+                                 "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                 "category_id": 1,
+                                 "status": 0,
+                                 "buyer": 72,
+                                 "use_locker": 2,
+                                 "locker_id": 12,
+                                 "username": "your_nickname",
+                                 "post_id": 7,
+                                 "representative_photo_id": 13
+                             }
+                         }
+                     }
+                 }
+             }
+)
+async def update_post_sub(room_id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+    filter = {"room_id": room_id}
+    db_record: Room = crud.get_record(Room, filter)
+    if db_record is None:
+        raise HTTPException(status_code=404, detail="Record not found")
+    if db_record.seller_id != current_user.account_id:
+        raise HTTPException(status_code=401, detail="Unauthorized request")
+    post_record: Post = crud.get_record(Post, {"post_id": db_record.post_id})
+    res = crud.patch_record(post_record, {"status": 2, "buyer": db_record.buyer_id})
+
+    if post_record.locker_id is not None:
+        locker_record: Locker = crud.get_record(Locker, {"locker_id", post_record.locker_id})
+        crud.patch_record(locker_record, {"status": 1, "post_id": None, "account_id": None})
+
+    return res
+
 
 
 @router.delete(
