@@ -476,6 +476,10 @@ async def update_post_sub(id: int, req: dict = Body(..., examples=[{
         raise HTTPException(status_code=404, detail="Record not found")
     if db_record.account_id != current_user.account_id:
         raise HTTPException(status_code=401, detail="Unauthorized request")
+    stat_update = req.get("status")
+    if stat_update is not None:
+        if stat_update == 2:
+            raise HTTPException(status_code=400, detail="Bad request. not allow deal done for this api request")
 
     return crud.patch_record(db_record, req)
 
