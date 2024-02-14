@@ -45,6 +45,8 @@ class CRUD:
                 setattr(db_record, key, value)
             if value == 0:
                 setattr(db_record, key, value)
+            if value is None:
+                setattr(db_record, key, value)
         self.session.commit()
 
         return db_record

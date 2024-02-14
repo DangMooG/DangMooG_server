@@ -136,9 +136,11 @@ last_request_time = {}
              }
              )
 async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
-    if req.email == "dangmoog123@gist.ac.kr" or req.email == "dotorit123@gist.ac.kr" or req.email == "gist123@gist.ac.kr":
-        mail_id = req.email.split("@")[0]
-        await rate_limit(mail_id)
+    if "@gist.ac.kr" not in req.email and "@gm.gist.ac.kr" not in req.email:
+        raise HTTPException(status_code=401, detail="Not valid request, please use gist mail")
+    mail_id, domain = req.email.split("@")
+    if mail_id == "dangmoog123" or mail_id == "dotorit123" or mail_id == "gist123" or mail_id == "house":
+        print("special requested email: ", mail_id)
         filter = {"email": mail_id}
         is_exist = crud.get_record(Account, filter)
         if is_exist:
@@ -155,39 +157,37 @@ async def mail_verification(req: account.AccountCreate, crud=Depends(get_crud)):
                 "status": 0,
                 "message": "테스트 계정을 생성하였습니다."
             }]))
-    if "@gist.ac.kr" not in req.email and "@gm.gist.ac.kr" not in req.email:
-        raise HTTPException(status_code=401, detail="Not valid request, please use gist mail")
-    mail_id, domain = req.email.split("@")
-    await rate_limit(mail_id)
-    filter = {"email": mail_id}
-    is_exist = crud.get_record(Account, filter)
-    verification_number = await send_mail(req.email)
-    if is_exist:
-        update = account.AccountReceate(password=pwd_context.hash(verification_number))
-        crud.patch_record(is_exist, update)
-        if is_exist.available == 3:
-            crud.patch_record(is_exist, {"available": 2})
+    else:
+        print("normal requested email: ", mail_id)
+        filter = {"email": mail_id}
+        is_exist = crud.get_record(Account, filter)
+        verification_number = await send_mail(req.email)
+        if is_exist:
+            update = account.AccountReceate(password=pwd_context.hash(verification_number))
+            crud.patch_record(is_exist, update)
+            if is_exist.available == 3:
+                crud.patch_record(is_exist, {"available": 2})
+                return JSONResponse(jsonable_encoder([{
+                    "status": 0,
+                    "message": "재가입 계정입니다."
+                }]))
+
+            return JSONResponse(jsonable_encoder([{
+                "status": 1,
+                "message": "이미 존재하는 계정입니다."
+            }]))
+        else:
+            req.email = mail_id
+            db_account = account.AccountSet(
+                **req.dict(),
+                password=pwd_context.hash(verification_number),
+                gm=1 if domain.startswith("gm") else 0
+            )
+            crud.create_record(Account, db_account)
             return JSONResponse(jsonable_encoder([{
                 "status": 0,
-                "message": "재가입 계정입니다."
+                "message": "메일을 전송하였습니다."
             }]))
-
-        return JSONResponse(jsonable_encoder([{
-            "status": 1,
-            "message": "이미 존재하는 계정입니다."
-        }]))
-    else:
-        req.email = mail_id
-        db_account = account.AccountSet(
-            **req.dict(),
-            password=pwd_context.hash(verification_number),
-            gm=1 if domain.startswith("gm") else 0
-        )
-        crud.create_record(Account, db_account)
-        return JSONResponse(jsonable_encoder([{
-            "status": 0,
-            "message": "메일을 전송하였습니다."
-        }]))
 
 
 ACCESS_TOKEN_EXPIRE_DAYS = 30 * 6

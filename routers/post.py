@@ -515,7 +515,7 @@ async def update_post_sub(id: int, req: dict = Body(..., examples=[{
                  }
              }
 )
-async def update_post_sub(room_id: int, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
+async def update_post_sub(room_id: str, crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
     filter = {"room_id": room_id}
     db_record: Room = crud.get_record(Room, filter)
     if db_record is None:
