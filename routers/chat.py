@@ -31,34 +31,21 @@ Chat table CRUD
                                                                  "들어갈 변수들은 쿼리(query)"
                                                                  "형식으로 작성되어야 합니다.\n\n"
                                                                  "Request Body에 사진 파일들을 담으면 됩니다.",
-    response_model=chat.RecordChat
+    response_model=chat.PhotoChat
 )
 async def create_with_photo(files: List[UploadFile], req: photo.MPhotoStart = Depends(), crud=Depends(get_crud), current_user: Account = Depends(get_current_user)):
-    room_information = crud.search_record(Room, {"room_id": req.room_id})[0]
-    if room_information.buyer_id == current_user.account_id:
-        is_from_buyer = 1
-    else:
-        is_from_buyer = 0
-    temp_chat: Message = crud.create_record(Message, chat.Message(
-        room_id=req.room_id,
-        is_from_buyer=is_from_buyer,
-        is_photo=1,
-        content="img",
-        read=0
-    ))
-    update_content = []
+    urls = []
     for idx, file in enumerate(files):
         url = await upload_file(file, "message")
         temp_photo = photo.MPhotoUpload(
             url=url,
-            message_id=temp_chat.message_id,
+            room_id=req.room_id,
             account_id=current_user.account_id
         )
         crud.create_record(MPhoto, temp_photo)
-        update_content.append(url)
-    response = crud.patch_record(temp_chat, {"content": json.dumps(update_content)})
-    response.content = update_content
-    return response
+        urls.append(url)
+
+    return chat.PhotoChat(content=urls)
 
 
 @router.post(

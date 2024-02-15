@@ -52,6 +52,13 @@ class RecordChat(BaseModel):
         orm_mode = True
 
 
+class PhotoChat(BaseModel):
+    content: List[str]
+
+    class Config:
+        orm_mode = True
+
+
 class Readroom(BaseModel):
     post_id: List[int]
     iam_buyer: List[bool]
