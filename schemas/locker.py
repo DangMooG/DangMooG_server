@@ -58,3 +58,12 @@ class LockerPass(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class PreLockerPass(BaseModel):
+    locker_id: int
+    name: str
+    password: str
+
+    class Config:
+        orm_mode = True
