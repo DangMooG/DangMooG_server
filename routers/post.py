@@ -526,7 +526,7 @@ async def update_post_sub(room_id: str, crud=Depends(get_crud), current_user: Ac
     res = crud.patch_record(post_record, {"status": 2, "buyer": db_record.buyer_id})
 
     if post_record.locker_id is not None:
-        locker_record: Locker = crud.get_record(Locker, {"locker_id", post_record.locker_id})
+        locker_record: Locker = crud.get_record(Locker, {"locker_id": post_record.locker_id})
         crud.patch_record(locker_record, {"status": 1, "post_id": None, "account_id": None})
 
     return res
