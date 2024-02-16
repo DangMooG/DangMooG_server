@@ -87,7 +87,7 @@ class CRUD:
 
     def app_paging_record(self, table: BaseModel, size: int, checkpoint: int = 0):
         status_order = case(
-            [(table.status == 2, 1)],
+            (table.status == 2, 1),
             else_=0
         )
 
