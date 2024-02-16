@@ -166,10 +166,7 @@ async def page_post(req: RequestPage, crud=Depends(get_crud)):
     response_model=post.AppResponseModel,
     responses={
         200: {
-            "description": "GIST 메일을 통해서 회원가입 요청이 온다면 200 status code 표시와 함께, request body에 입력한"
-                           "메일로 6자리의 랜덤 정수 코드가 보내집니다. \n\n"
-                           "Response: 처음 가입시 status 값이 0으로 이미 회원일 경우 status 1과 함께 안내 메시지가 같이 "
-                           "반환됩니다.",
+            "description": "사용 예시 입니다.",
             "content": {
                 "application/json": {
                     "examples": {
@@ -274,6 +271,127 @@ async def app_page_listing(size: int, checkpoint: Optional[int] = None, crud=Dep
         return crud.app_paging_record(Post, size, checkpoint)
     else:
         return crud.app_paging_record(Post, size)
+
+
+@router.get(
+    "/house-app-paging",
+    name="app을 위한 house 게시물 paging method",
+    description="어플리케이션에서 하우스 게시물 페이징을 요쳥할 때 사용하는 api입니다. get method에 query로, \n\n"
+                "size(int) - 받고자 하는 페이지 양\n\n"
+                "checkpoint(int, None) - 현재 페이지 마지막 항목에 대한 값입니다. 처음 요청할 때는 아무것도 입력하지 않아도 됩니다.\n\n"
+                "해당 api를 실행하면 response로 필요한 페이징과 다음 요청을 위한 next_checkpoint 값이 반환됩니다. 이걸 가지고 다음 요청의 "
+                "checkpoint query값으로 활용하면 됩니다. 이는 페이징 로딩중에 새로운 게시물이 올라와도 중복해서 게시물을 로드 하지 않도록 하는 "
+                "checkpoint 값입니다.\n\n"
+                "성능 유지를 위해 size는 최대 99개의 요청까지 수용 가능합니다.\n\n"
+                "가장 최신의 게시물부터 가져오며, 가장 끝의 게시물을 가져오게 되면 \"next_checkpoint\" 값이 -1로 반환됩니다.",
+    response_model=post.AppResponseModel,
+    responses={
+        200: {
+            "description": "사용 예시 입니다.",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "10개의 게시글이 있는 상태에서 checkpoint를 설정하지 않고 size를 2로 요청한 경우": {
+                            "value": {
+                                "items": [
+                                    {
+                                        "price": 10000,
+                                        "post_id": 10,
+                                        "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                        "category_id": 1,
+                                        "liked": 0,
+                                        "update_time": "2023-10-18T13:12:04",
+                                        "title": "test post 9999",
+                                        "representative_photo_id": "null",
+                                        "status": -1,
+                                        "username": "trial_your_nickname",
+                                        "create_time": "2023-10-18T13:12:04"
+                                    },
+                                    {
+                                        "price": 10000,
+                                        "post_id": 9,
+                                        "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                        "category_id": 1,
+                                        "liked": 0,
+                                        "update_time": "2023-10-18T13:11:59",
+                                        "title": "test post 8888",
+                                        "representative_photo_id": "null",
+                                        "status": -1,
+                                        "username": "trial_your_nickname",
+                                        "create_time": "2023-10-18T13:11:59"
+                                    }
+                                ],
+                                "next_checkpoint": 8
+                            }
+                        },
+                        "바로 next_checkpoint -> 8을 checkpoint query에 넣어서 실행할 경우": {
+                            "value": {
+                                "items": [
+                                    {
+                                        "price": 10000,
+                                        "post_id": 8,
+                                        "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                        "category_id": 1,
+                                        "liked": 0,
+                                        "update_time": "2023-10-18T13:11:54",
+                                        "title": "test post 7777",
+                                        "representative_photo_id": "null",
+                                        "status": -1,
+                                        "username": "trial_your_nickname",
+                                        "create_time": "2023-10-18T13:11:54"
+                                    },
+                                    {
+                                        "price": 10000,
+                                        "post_id": 7,
+                                        "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                        "category_id": 1,
+                                        "liked": 0,
+                                        "update_time": "2023-10-18T13:11:46",
+                                        "title": "test post 666",
+                                        "representative_photo_id": "null",
+                                        "status": -1,
+                                        "username": "trial_your_nickname",
+                                        "create_time": "2023-10-18T13:11:46"
+                                    }
+                                ],
+                                "next_checkpoint": 6
+                            }
+                        },
+                        "마지막에 1개가 남았는데 2개의 size를 요청할 경우": {
+                            "value": {
+                                "items": [
+                                    {
+                                        "price": 10000,
+                                        "post_id": 1,
+                                        "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                        "category_id": 1,
+                                        "liked": 0,
+                                        "update_time": "2023-10-18T11:51:31",
+                                        "title": "짱구 띠부띠부 스티커 한정판",
+                                        "representative_photo_id": "null",
+                                        "status": -1,
+                                        "username": "trial_your_nickname",
+                                        "create_time": "2023-10-18T11:51:31"
+                                    }
+                                ],
+                                "next_checkpoint": -1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+    }
+)
+async def house_app_page_listing(size: int, checkpoint: Optional[int] = None, crud=Depends(get_crud)):
+    if size > 100:
+        raise HTTPException(status_code=400, detail="Size should be below 100")
+    if size <= 0:
+        raise HTTPException(status_code=400, detail="Size should be positive")
+    if checkpoint:
+        return crud.house_paging_record(Post, size, checkpoint)
+    else:
+        return crud.house_paging_record(Post, size)
 
 
 @router.post(

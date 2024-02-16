@@ -1,7 +1,7 @@
 import math
 
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
 from typing import Union, List
@@ -86,7 +86,27 @@ class CRUD:
         return pages
 
     def app_paging_record(self, table: BaseModel, size: int, checkpoint: int = 0):
-        query = self.session.query(table).filter(table.use_locker != 1)
+        status_order = case(
+            [(table.status == 2, 1)],
+            else_=0
+        )
+
+        query = self.session.query(table).filter(table.use_locker != 1, table.status != -1)
+        total_row = query.count()
+        if checkpoint == 0:
+            start = checkpoint
+            items = query.order_by(status_order, table.create_time.desc()).offset(start).limit(size).all()
+            return {"items": items, "next_checkpoint": total_row - size}
+        else:
+            start = total_row - checkpoint
+            items = query.order_by(status_order, table.create_time.desc()).offset(start).limit(size).all()
+            next_checkpoint = checkpoint - size
+            if next_checkpoint < 1:
+                next_checkpoint = -1
+            return {"items": items, "next_checkpoint": next_checkpoint}
+
+    def house_paging_record(self, table: BaseModel, size: int, checkpoint: int = 0):
+        query = self.session.query(table).filter(table.use_locker != 1, table.status == -1)
         total_row = query.count()
         if checkpoint == 0:
             start = checkpoint
