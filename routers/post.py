@@ -448,16 +448,32 @@ async def search_post(
                     "example": {
                         "result":
                             [
-                                10,
-                                9,
-                                8,
-                                7,
-                                6,
-                                5,
-                                4,
-                                3,
-                                2,
-                                1
+                                {
+                                    "price": 10000,
+                                    "post_id": 8,
+                                    "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                    "category_id": 1,
+                                    "liked": 0,
+                                    "update_time": "2023-10-18T13:11:54",
+                                    "title": "test post 7777",
+                                    "representative_photo_id": "null",
+                                    "status": -1,
+                                    "username": "trial_your_nickname",
+                                    "create_time": "2023-10-18T13:11:54"
+                                },
+                                {
+                                    "price": 10000,
+                                    "post_id": 7,
+                                    "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                    "category_id": 1,
+                                    "liked": 0,
+                                    "update_time": "2023-10-18T13:11:46",
+                                    "title": "test post 666",
+                                    "representative_photo_id": "null",
+                                    "status": -1,
+                                    "username": "trial_your_nickname",
+                                    "create_time": "2023-10-18T13:11:46"
+                                }
                             ]
                     }
                 }
@@ -467,8 +483,7 @@ async def search_post(
 )
 async def get_my_post(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     posts = crud.search_record(Post, {"account_id": current_user.account_id})
-    post_ids = [element.post_id for element in posts]
-    return {"result": post_ids[::-1]}
+    return {"result": posts[::-1]}
 
 
 @router.post(
@@ -483,16 +498,32 @@ async def get_my_post(current_user: Account = Depends(get_current_user), crud=De
                     "example": {
                         "result":
                             [
-                                10,
-                                9,
-                                8,
-                                7,
-                                6,
-                                5,
-                                4,
-                                3,
-                                2,
-                                1
+                                {
+                                    "price": 10000,
+                                    "post_id": 8,
+                                    "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                    "category_id": 1,
+                                    "liked": 0,
+                                    "update_time": "2023-10-18T13:11:54",
+                                    "title": "test post 7777",
+                                    "representative_photo_id": "null",
+                                    "status": -1,
+                                    "username": "trial_your_nickname",
+                                    "create_time": "2023-10-18T13:11:54"
+                                },
+                                {
+                                    "price": 10000,
+                                    "post_id": 7,
+                                    "description": "정말 어렵게 획득한 짱구 스티커 입니다...\n대학 기숙사 A동에서 직거래 가능해요! 네고 사절입니다.",
+                                    "category_id": 1,
+                                    "liked": 0,
+                                    "update_time": "2023-10-18T13:11:46",
+                                    "title": "test post 666",
+                                    "representative_photo_id": "null",
+                                    "status": -1,
+                                    "username": "trial_your_nickname",
+                                    "create_time": "2023-10-18T13:11:46"
+                                }
                             ]
                     }
                 }
@@ -502,8 +533,7 @@ async def get_my_post(current_user: Account = Depends(get_current_user), crud=De
 )
 async def get_my_post(current_user: Account = Depends(get_current_user), crud=Depends(get_crud)):
     posts = crud.search_record(Post, {"buyer": current_user.account_id})
-    post_ids = [element.post_id for element in posts]
-    return {"result": post_ids[::-1]}
+    return {"result": posts[::-1]}
 
 
 @router.get(
