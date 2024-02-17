@@ -110,11 +110,11 @@ class CRUD:
         total_row = query.count()
         if checkpoint == 0:
             start = checkpoint
-            items = query.order_by(table.create_time.desc()).offset(start).limit(size).all()
+            items = query.order_by(table.create_time.desc(), table.post_id.desc()).offset(start).limit(size).all()
             return {"items": items, "next_checkpoint": total_row - size}
         else:
             start = total_row - checkpoint
-            items = query.order_by(table.create_time.desc()).offset(start).limit(size).all()
+            items = query.order_by(table.create_time.desc(), table.post_id.desc()).offset(start).limit(size).all()
             next_checkpoint = checkpoint - size
             if next_checkpoint < 1:
                 next_checkpoint = -1
