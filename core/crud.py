@@ -19,7 +19,7 @@ class CRUD:
         filters = []
         for table_id, id in cond.items():
             filters.append(getattr(table, table_id) == id)
-        return self.session.query(table).filter(*filters).first()
+        return self.session.query(table).filter(*filters).order_by(table.create_time.desc()).first()
 
     def create_record(self, table: BaseModel, req: BaseModel):
         db_record = table(**req.dict())
