@@ -246,7 +246,7 @@ async def active_account(fcm: Annotated[str, Form()] = "temporary", form_data: O
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if datetime.now() > user.update_time + timedelta(minutes=10) and (form_data.username != "dangmoog123" or form_data.username != "dotorit123" or form_data.username != "gist123"):
+    if datetime.now() > user.update_time + timedelta(minutes=10) and (form_data.username != "dangmoog123" and form_data.username != "dotorit123" and form_data.username != "gist123"):
         raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Authentication number has expired")
 
     # make access token
