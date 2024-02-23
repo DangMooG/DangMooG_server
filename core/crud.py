@@ -120,6 +120,21 @@ class CRUD:
                 next_checkpoint = -1
             return {"items": items, "next_checkpoint": next_checkpoint}
 
+    def house_category_record(self, table: BaseModel, category: int, size: int, checkpoint: int = 0):
+        query = self.session.query(table).filter(table.use_locker != 1, table.status == -1, table.category_id == category)
+        total_row = query.count()
+        if checkpoint == 0:
+            start = checkpoint
+            items = query.order_by(table.create_time.desc(), table.post_id.desc()).offset(start).limit(size).all()
+            return {"items": items, "next_checkpoint": total_row - size}
+        else:
+            start = total_row - checkpoint
+            items = query.order_by(table.create_time.desc(), table.post_id.desc()).offset(start).limit(size).all()
+            next_checkpoint = checkpoint - size
+            if next_checkpoint < 1:
+                next_checkpoint = -1
+            return {"items": items, "next_checkpoint": next_checkpoint}
+
     def search_record(self, table: BaseModel, req: Union[BaseModel, dict]):
         if isinstance(req, BaseModel):
             req = req.dict()
