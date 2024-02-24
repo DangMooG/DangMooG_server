@@ -1,4 +1,4 @@
-from MySQLdb import TIMESTAMP
+from sqlalchemy.types import TIMESTAMP
 from sqlalchemy import Column, Integer, ForeignKey, text
 
 from core.db import Base
