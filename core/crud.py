@@ -106,7 +106,7 @@ class CRUD:
             return {"items": items, "next_checkpoint": next_checkpoint}
 
     def house_paging_record(self, table: BaseModel, size: int, checkpoint: int = 0):
-        query = self.session.query(table).filter(table.use_locker != 1, table.status == -1)
+        query = self.session.query(table).filter(table.use_locker != 1, table.account_id == 91)
         total_row = query.count()
         if checkpoint == 0:
             start = checkpoint
@@ -121,7 +121,7 @@ class CRUD:
             return {"items": items, "next_checkpoint": next_checkpoint}
 
     def house_category_record(self, table: BaseModel, category: int, size: int, checkpoint: int = 0):
-        query = self.session.query(table).filter(table.use_locker != 1, table.status == -1, table.category_id == category)
+        query = self.session.query(table).filter(table.use_locker != 1, table.account_id == 91, table.category_id == category)
         total_row = query.count()
         if checkpoint == 0:
             start = checkpoint
