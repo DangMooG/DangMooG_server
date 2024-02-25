@@ -91,7 +91,7 @@ class CRUD:
             else_=0
         )
 
-        query = self.session.query(table).filter(table.use_locker != 1, table.status != -1)
+        query = self.session.query(table).filter(table.use_locker != 1, table.account_id != 91)
         total_row = query.count()
         if checkpoint == 0:
             start = checkpoint
