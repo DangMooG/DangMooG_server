@@ -27,13 +27,16 @@ fastapi_app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 
+@fastapi_app.get("/healthcheck")
+async def health_check():
+    return {"message": "OK"}
+
 fastapi_app.include_router(post.router, prefix="/meta")
 fastapi_app.include_router(account.router, prefix="/meta")
 fastapi_app.include_router(category.router, prefix="/meta")
 fastapi_app.include_router(chat.router, prefix="/meta")
 fastapi_app.include_router(photo.router, prefix="/meta")
 fastapi_app.include_router(locker.router, prefix="/meta")
-
 
 # 실행 명령어 디버깅용
 # uvicorn app:fastapi_app --reload
