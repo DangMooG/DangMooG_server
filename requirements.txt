@@ -10,7 +10,7 @@ cffi
 charset-normalizer==3.2.0
 click==8.1.7
 colorama==0.4.6
-cryptography
+cryptography==37.0.4
 dnspython==2.4.2
 ecdsa==0.18.0
 email-validator==2.0.0.post2
@@ -20,7 +20,9 @@ greenlet
 h11==0.14.0
 idna==3.4
 jmespath
+mangum
 mysqlclient==2.2.0
+mysql-connector-python
 passlib==1.7.4
 pyasn1==0.5.0
 pycparser

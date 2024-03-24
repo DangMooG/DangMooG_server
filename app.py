@@ -5,6 +5,8 @@ from routers import (post, account, category, chat, photo, locker)
 
 from core.db import Base, engine
 
+from mangum import Mangum
+
 fastapi_app = FastAPI(title="DangMooG", debug=True)
 
 origins = [
@@ -38,6 +40,7 @@ fastapi_app.include_router(chat.router, prefix="/meta")
 fastapi_app.include_router(photo.router, prefix="/meta")
 fastapi_app.include_router(locker.router, prefix="/meta")
 
+handler = Mangum(fastapi_app)
 # 실행 명령어 디버깅용
 # uvicorn app:fastapi_app --reload
 # --host 0.0.0.0 --port 80
