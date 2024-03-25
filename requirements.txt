@@ -9,5 +9,6 @@ passlib==1.7.4
 pydantic==1.10.10
 pydantic_core==2.6.3
 python-multipart==0.0.6
+sentry-sdk==1.43.0
 SQLAlchemy==2.0.18
 uvicorn==0.23.2
