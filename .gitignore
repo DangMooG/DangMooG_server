@@ -17,4 +17,7 @@ filetest.py
 mariadb
 .vscode
 docker-compose.yml
+docker-compose-dev.yml
 filetest.py
+
+venv

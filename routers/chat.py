@@ -1,11 +1,7 @@
 import ast
-import json
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from starlette.responses import Response
-from starlette.status import HTTP_204_NO_CONTENT
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
-from core.schema import RequestPage
 from core.utils import get_crud
 from models.chat import *
 from schemas import chat, photo
@@ -15,7 +11,7 @@ from models.account import Account
 from models.photo import MPhoto
 from models.post import Post
 
-from typing import List, Dict, Set, Optional
+from typing import List
 
 router = APIRouter(
     prefix="/chat",

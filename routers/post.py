@@ -17,8 +17,6 @@ from routers.photo import upload_file
 from models.account import Account
 from typing import Optional
 
-import boto3
-
 from typing import List
 
 router = APIRouter(

@@ -8,7 +8,6 @@ from starlette.responses import Response
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_200_OK
 from typing_extensions import Annotated
 from passlib.context import CryptContext
-from pydantic import Field
 
 from core.schema import RequestPage
 from core.utils import get_crud
@@ -20,13 +19,10 @@ from schemas import account
 from typing import List, Union
 from os import environ
 from datetime import timedelta, datetime
-import dotenv
 
 import smtplib
 from email.mime.text import MIMEText
 import random
-
-dotenv.load_dotenv(verbose=True)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(

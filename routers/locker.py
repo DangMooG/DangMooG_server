@@ -1,8 +1,6 @@
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
-from starlette.responses import Response
-from starlette.status import HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
 
 from core.utils import get_crud
 from models.locker import Locker, LockerAuth
