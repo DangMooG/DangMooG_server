@@ -1,0 +1,22 @@
+version: "3"
+services:
+  dangmoog:
+    image: dangmoog_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dangmoog
+    ports:
+      - "8000:8000"
+    environment:
+      - SQLALCHEMY_DATABASE_URL=
+      - S3_ACCESS=
+      - S3_SECRET=
+      - ACCESS_TOKEN_HASH=
+      - REFRESH_TOKEN_HASH=
+      - MAIL_API_KEY=
+      - AES_KEY=
+      - SPECIAL_PWD=
+      - TZ=Asia/Seoul
+    restart: "always"
+

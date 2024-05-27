@@ -16,7 +16,7 @@ filetest.py
 .env
 mariadb
 .vscode
-docker-compose.yml
+docker-compose_sub.yml
 docker-compose-dev.yml
 filetest.py
 
