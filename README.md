@@ -6,6 +6,10 @@ GIST의 원내 중고장터 플랫폼 '도토릿'의 FastAPI를 사용하여 구
 ## 배포 구조
 ![deploy map](./readme_img/architecture.png)
 백엔드 서비스에서 API 서버를 담당하고 있습니다. 다른 모든 백엔드 스택과 소통하며 중계자 역할을 수행합니다.
+### AWS Lightsail 기반
+![existed infra map](./readme_img/existed_deploy.png)
+### AWS Lambda 추가 적용 기반
+![new infra map](./readme_img/new_deploy.png)
 
 ## 주요 기능
 - **사용자 관리**: 사용자 등록, 로그인, 정보 조회 및 수정 기능
