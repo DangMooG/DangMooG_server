@@ -1,7 +1,11 @@
 # DangMooG 중고장터 프로젝트 API 서버
-
+![main intro image](./readme_img/main.png)
 GIST의 원내 중고장터 플랫폼 '도토릿'의 FastAPI를 사용하여 구현된 백엔드 API 서버입니다. 
 <br> 계정, 게시물, 보관함 관리, 채팅기록 다양한 데이터들을 관리하는 역할을 합니다.
+
+## 배포 구조
+![deploy map](./readme_img/architecture.png)
+백엔드 서비스에서 API 서버를 담당하고 있습니다. 다른 모든 백엔드 스택과 소통하며 중계자 역할을 수행합니다.
 
 ## 주요 기능
 - **사용자 관리**: 사용자 등록, 로그인, 정보 조회 및 수정 기능을 제공합니다.
@@ -55,113 +59,57 @@ dangmooz_back/
 ```
 
 ## 데이터베이스 구조
-주요 테이블과 각 테이블의 필드는 다음과 같습니다:
-### 데이터베이스 구조
+주요 테이블과 각 테이블의 필드는 다음과 같습니다
+![database schema](./readme_img/db_schema.png)
+
+### 테이블 기능
 
 #### `post` 테이블
-- `post_id`: 포스트 ID (자동 증가, 기본 키)
-- `title`: 포스트 제목 (문자열, 255자)
-- `price`: 가격 (정수)
-- `description`: 설명 (텍스트)
-- `representative_photo_id`: 대표 사진 ID (정수, NULL 가능)
-- `category_id`: 카테고리 ID (정수, 외래 키, `category` 테이블 참조)
-- `status`: 상태 (작은 정수, 0: 판매중, 1: 예약, 2: 판매완료)
-- `buyer`: 구매자 ID (정수, NULL 가능)
-- `use_locker`: 사물함 사용 여부 (작은 정수, 0: 사용안함, 1: 사용함(미인증), 2: 사용함(인증완료))
-- `account_id`: 계정 ID (정수, 외래 키, `account` 테이블 참조)
-- `username`: 사용자 이름 (문자열, 100자)
-- `liked`: 좋아요 수 (정수, 기본값 0)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
-- `update_time`: 수정 시간 (타임스탬프, 기본값 현재 시간, 수정 시 현재 시간으로 업데이트)
+- 포스트 정보 저장: 사용자가 게시한 포스트의 제목, 가격, 설명, 상태, 작성자 등의 정보를 저장합니다.
 
 #### `account` 테이블
-- `account_id`: 계정 ID (자동 증가, 기본 키)
-- `username`: 사용자 이름 (문자열, 255자, 유니크)
-- `password`: 비밀번호 (문자, 60자, 바이너리)
-- `email`: 이메일 (문자열, 255자, 유니크)
-- `profile_url`: 프로필 URL (문자열, 2000자, NULL 가능)
-- `available`: 사용 가능 여부 (작은 정수, 기본값 1)
-- `jail_until`: 차단 해제 시간 (타임스탬프, NULL 가능)
-- `fcm`: FCM 토큰 (텍스트, NULL 가능)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
-- `update_time`: 수정 시간 (타임스탬프, 기본값 현재 시간, 수정 시 현재 시간으로 업데이트)
+- 사용자 계정 관리: 사용자 계정 정보, 비밀번호, 이메일, 프로필 URL, 계정 상태 등을 저장합니다.
+
+#### `chat` 테이블
+- 채팅 메시지 저장: 사용자가 주고받은 채팅 메시지와 관련된 정보를 저장합니다.
 
 #### `photo` 테이블
-- `photo_id`: 사진 ID (자동 증가, 기본 키)
-- `url`: 사진 URL (문자열, 2000자)
-- `post_id`: 포스트 ID (정수, NULL 가능, 외래 키, `post` 테이블 참조)
-- `category_id`: 카테고리 ID (정수, NULL 가능, 외래 키, `category` 테이블 참조)
-- `account_id`: 계정 ID (정수, NULL 가능, 외래 키, `account` 테이블 참조)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
+- 사진 관리: 포스트, 카테고리, 계정과 관련된 사진 URL을 저장합니다.
+
+#### `chatphoto` 테이블
+- 채팅 사진 관리: 채팅 메시지에 포함된 사진의 URL을 저장합니다.
 
 #### `category` 테이블
-- `category_id`: 카테고리 ID (자동 증가, 기본 키)
-- `category_name`: 카테고리 이름 (문자열, 255자)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
-- `update_time`: 수정 시간 (타임스탬프, 기본값 현재 시간, 수정 시 현재 시간으로 업데이트)
+- 카테고리 관리: 포스트의 카테고리를 정의하고 저장합니다.
 
 #### `liked` 테이블
-- `liked_id`: 좋아요 ID (자동 증가, 기본 키)
-- `post_id`: 포스트 ID (정수, 외래 키, `post` 테이블 참조)
-- `account_id`: 계정 ID (정수, 외래 키, `account` 테이블 참조)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
+- 좋아요 기록 관리: 사용자와 포스트 간의 좋아요 관계를 저장합니다.
 
 #### `locker` 테이블
-- `locker_id`: 사물함 ID (자동 증가, 기본 키)
-- `name`: 사물함 이름 (문자열, 10자, 유니크)
-- `status`: 상태 (작은 정수, 기본값 1)
-- `account_id`: 계정 ID (정수, NULL 가능, 외래 키, `account` 테이블 참조)
-- `post_id`: 포스트 ID (정수, NULL 가능, 외래 키, `post` 테이블 참조)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
-- `update_time`: 수정 시간 (타임스탬프, 기본값 현재 시간, 수정 시 현재 시간으로 업데이트)
+- 사물함 관리: 사용자가 이용하는 사물함의 상태와 관련된 정보를 저장합니다.
 
 #### `locker_auth` 테이블
-- `locker_auth_id`: 사물함 인증 ID (자동 증가, 기본 키)
-- `post_id`: 포스트 ID (정수, 외래 키, `post` 테이블 참조)
-- `locker_id`: 사물함 ID (정수, 외래 키, `locker` 테이블 참조)
-- `password`: 비밀번호 (문자열, 10자)
-- `photo_url`: 사진 URL (문자열, 2000자)
-- `is_over`: 완료 여부 (작은 정수, 기본값 0)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
-- `update_time`: 수정 시간 (타임스탬프, 기본값 현재 시간, 수정 시 현재 시간으로 업데이트)
+- 사물함 인증 관리: 사물함 이용 시 필요한 인증 정보와 관련된 데이터를 저장합니다.
 
 #### `room` 테이블
-- `room_id`: 방 ID (문자열, 36자, 기본 키)
-- `post_id`: 포스트 ID (정수, 외래 키, `post` 테이블 참조)
-- `buyer_id`: 구매자 ID (정수, 외래 키, `account` 테이블 참조)
-- `seller_id`: 판매자 ID (정수, 외래 키, `account` 테이블 참조)
-- `status`: 상태 (작은 정수, NULL 가능)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
-- `update_time`: 수정 시간 (타임스탬프, 기본값 현재 시간, 수정 시 현재 시간으로 업데이트)
+- 채팅 방 관리: 구매자와 판매자 간의 채팅 방 정보를 저장합니다.
 
 #### `message` 테이블
-- `message_id`: 메시지 ID (자동 증가, 기본 키)
-- `room_id`: 방 ID (문자열, 36자, 외래 키, `room` 테이블 참조)
-- `is_from_buyer`: 구매자로부터 온 메시지 여부 (작은 정수)
-- `content`: 메시지 내용 (문자열, 255자)
-- `read`: 읽음 여부 (작은 정수, 기본값 0)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
+- 채팅 메시지 관리: 특정 채팅 방에서 주고받은 메시지를 저장합니다.
 
 #### `m_photo` 테이블
-- `m_photo_id`: 메시지 사진 ID (자동 증가, 기본 키)
-- `url`: 사진 URL (문자열, 2000자)
-- `message_id`: 메시지 ID (정수, 외래 키, `message` 테이블 참조)
-- `account_id`: 계정 ID (정수, 외래 키, `account` 테이블 참조)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
+- 메시지 사진 관리: 채팅 메시지에 포함된 사진 URL을 저장합니다.
 
 #### `blame` 테이블
-- `blame_id`: 신고 ID (자동 증가, 기본 키)
-- `content`: 신고 내용 (텍스트)
-- `blamer_id`: 신고자 ID (정수)
-- `create_time`: 생성 시간 (타임스탬프, 기본값 현재 시간)
+- 신고 관리: 사용자가 신고한 내용과 관련된 정보를 저장합니다.
 
 
 ## 실행 방법
 
 1. 레포지토리를 클론합니다:
     ```bash
-    git clone https://github.com/Reelect/DangMooG_server
-    cd dangmooz_back
+    git clone https://github.com/DangMooG/DangMooG_server
+    cd DangMooG_server
     ```
 
 2. 가상 환경을 만들고 활성화합니다:
