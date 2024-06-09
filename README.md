@@ -1,4 +1,6 @@
 # DangMooG 중고장터 프로젝트 API 서버
+[한국어](./README.md)  | [日本語](./README_JP.md)
+
 ![main intro image](./readme_img/main.png)
 GIST의 원내 중고장터 플랫폼 '도토릿'의 FastAPI를 사용하여 구현된 백엔드 API 서버입니다. 
 <br> 계정, 게시물, 보관함 관리, 채팅기록 다양한 데이터들을 관리하는 역할을 합니다.
@@ -27,7 +29,7 @@ GIST의 원내 중고장터 플랫폼 '도토릿'의 FastAPI를 사용하여 구
 
 ## 주요 파일 구조
 ```
-dangmooz_back/
+DangMooG_server/
 ├── main.py             # FastAPI 앱의 진입점
 ├── core/
 │   ├── crud.py
